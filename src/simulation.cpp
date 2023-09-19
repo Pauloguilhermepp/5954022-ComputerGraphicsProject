@@ -15,7 +15,7 @@ struct Body {
 };
 
 // Function to calculate gravitational force between two bodies
-void calculateGravity(Body& body1, Body& body2, double& fx, double& fy) {
+void CalculateGravity(Body& body1, Body& body2, double& fx, double& fy) {
     double dx = body2.x - body1.x;
     double dy = body2.y - body1.y;
     double r = sqrt(dx * dx + dy * dy);
@@ -52,7 +52,7 @@ int main() {
     for (double t = 0.0; t < simulationTime; t += dt) {
         double fx, fy;
 
-        calculateGravity(earth, sun, fx, fy);
+        CalculateGravity(earth, sun, fx, fy);
         updateBody(earth, fx, fy, dt);
     }
 

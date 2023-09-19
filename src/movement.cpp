@@ -4,6 +4,7 @@
 #include <sstream>
 #include <cmath>
 #include <vector>
+#include <map>
 
 #define POSITIVE 1
 #define NEGATIVE -1
@@ -25,11 +26,24 @@ struct Coordinates {
 	GLfloat z;
 };
 
-const int camAngleChangeRatio = 1;
-const int scrollChangeRatio = 2;
+std::map<char, bool> movementKeyPressed = {
+    { 'w', false },
+    { 'a', false },
+    { 's', false },
+	{ 'd', false },
+	{ ' ', false },
+	{ '\\', false}
+};
+
+int count;
+
+const unsigned int simulationTimePrecision = 1; // the lower, the better;
+const unsigned int deltaT = 16;
+const double scale = 1/5e8;
+const int camSpeedChangeRatio = 2;
+const int simulationSpeedChangeRatio = 1000;
 const int minCamSpeed = 1;
 const int maxCamSpeed = 200;
-const int deltaT = 100;
 const double mouseSensitivity = 0.1;
 
 Body sun, earth;
@@ -37,16 +51,16 @@ GLfloat fov, fAspect, largura, altura, yaw = -90, pitch = 0;
 Coordinates camera{ 0, 0, 0 }, lookAtHim{ camera.x, camera.y, camera.z-1 };
 int camSpeed = 10;
 int previousMouseX, previousMouseY;
-int simulationTime;
+int simulationSpeed;
 
-void logCoordinates(Coordinates coordinates) {
+void LogCoordinates(Coordinates coordinates) {
 	cout << "x: " << coordinates.x << endl;
 	cout << "y: " << coordinates.y << endl;
 	cout << "z: " << coordinates.z << endl;
 }
 
 // Function to calculate gravitational force between two bodies
-void calculateGravity(Body& body1, Body& body2, double& fx, double& fy) {
+void CalculateGravity(Body& body1, Body& body2, double& fx, double& fy) {
     double dx = body2.x - body1.x;
     double dy = body2.y - body1.y;
     double r = sqrt(dx * dx + dy * dy);
@@ -58,7 +72,7 @@ void calculateGravity(Body& body1, Body& body2, double& fx, double& fy) {
 }
 
 // Function to update the position and velocity of a body based on forces
-void updateBody(Body& body, double fx, double fy, double dt) {
+void UpdateBody(Body& body, double fx, double fy, int dt) {
     double ax = fx / body.mass;
     double ay = fy / body.mass;
 
@@ -69,7 +83,7 @@ void updateBody(Body& body, double fx, double fy, double dt) {
     body.y += body.vy * dt;
 }
 
-void drawCrosshair() {
+void DrawCrosshair() {
 	glColor3f(0, 0, 0);
 	glPushMatrix();
         glTranslated(lookAtHim.x, lookAtHim.y, lookAtHim.z);
@@ -77,7 +91,7 @@ void drawCrosshair() {
     glPopMatrix();
 }
 
-void drawBodies() {
+void DrawBodies() {
 	glColor3f(8.0f, 0.5f, 0.5f);
     glPushMatrix();
         glTranslated(0, 0, 0);
@@ -86,12 +100,9 @@ void drawBodies() {
 
 	glColor3f(0, 0.5f, 0.2f);
     glPushMatrix();
-        glTranslated(100, 0, 0);
+        glTranslated(earth.x*scale, earth.y*scale, 0);
         glutSolidSphere(5, 20, 20);
     glPopMatrix();
-
-	// cout << "earth x: " << earth.x << endl;
-	// cout << "earth y: " << earth.y << endl;
 }
 
 void Desenha(void)
@@ -100,8 +111,8 @@ void Desenha(void)
 
 	glViewport(0, 0, largura, altura);
 
-	drawCrosshair();
-	drawBodies();
+	DrawCrosshair();
+	DrawBodies();
 
 	glutSwapBuffers();
 }
@@ -160,13 +171,13 @@ Coordinates lookAtFloorDirection() {
 	return { deltaX/size, 0, deltaZ/size };
 }
 
-void resetMouse() {
+void ResetMouse() {
 	previousMouseX = largura/2;
 	previousMouseY = altura/2;
 	glutWarpPointer(largura/2, altura/2);
 }
 
-void updateCamera(bool sidesOrientation, int way) {
+void UpdateCamera(bool sidesOrientation, int way) {
 	GLfloat deltaX, deltaZ;
 	Coordinates direction = lookAtFloorDirection();
 
@@ -188,21 +199,9 @@ GLfloat radians(GLfloat degree) {
 	return degree * (PI/180);
 }
 
-void updateLookAt(bool moveYaw, int way) {
-	if (moveYaw) {
-		yaw += way*camAngleChangeRatio;
-	} else {
-		pitch += way*camAngleChangeRatio;
-	}
-	
-	lookAtHim.x = camera.x + cos(radians(yaw)) * cos(radians(pitch));
-	lookAtHim.y = camera.y + sin(radians(pitch));
-	lookAtHim.z = camera.z + sin(radians(yaw)) * cos(radians(pitch));
-}
-
 void GerenciaMovimentoMouse(int x, int y) {
 	if (x > largura-100 || y > altura-100 || x < 100 || y < 100) {
-		resetMouse();
+		ResetMouse();
 		return;
 	}
 
@@ -224,63 +223,56 @@ void GerenciaMovimentoMouse(int x, int y) {
 	glutPostRedisplay();
 }
 
-// Função callback chamada para gerenciar eventos do mouse
-void GerenciaCliqueMouse(int button, int state, int x, int y)
+void MouseClick(int button, int state, int x, int y)
 {
     switch (button)
     {
     case 3:
-        camSpeed = camSpeed > maxCamSpeed ? maxCamSpeed : camSpeed + scrollChangeRatio;
+        camSpeed = camSpeed > maxCamSpeed ? maxCamSpeed : camSpeed + camSpeedChangeRatio;
         break;
     case 4:
-        camSpeed = camSpeed < minCamSpeed ? minCamSpeed : camSpeed - scrollChangeRatio;
+        camSpeed = camSpeed < minCamSpeed ? minCamSpeed : camSpeed - camSpeedChangeRatio;
         break;
     case GLUT_LEFT_BUTTON:
-        // if (state == GLUT_DOWN)
         break;
-    }        
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);   //aplica o zBuffer  
-    EspecificaParametrosVisualizacao();
-	glutPostRedisplay();
+    }
 }
 
-void TeclasEspeciais(int key, int x, int y)
+void SpecialKeys(int key, int x, int y)
 {
     switch (key)
     {
 		case GLUT_KEY_LEFT:
-			updateLookAt(true, NEGATIVE);
 			break;
 		case GLUT_KEY_RIGHT:
-			updateLookAt(true, POSITIVE);
 			break;
 		case GLUT_KEY_UP:
-			updateLookAt(false, POSITIVE);
+			simulationSpeed += simulationSpeedChangeRatio;
 			break;
 		case GLUT_KEY_DOWN:
-			updateLookAt(false, NEGATIVE);
+			simulationSpeed -= simulationSpeedChangeRatio;
 			break;
     }
 
-	EspecificaParametrosVisualizacao();
-	glutPostRedisplay();
+	// EspecificaParametrosVisualizacao();
+	// glutPostRedisplay();
 }
 
-void GerenciaTeclado(unsigned char key, int x, int y) {
+void KeyboardFunc(unsigned char key, int x, int y) {
+	// setar o map
     switch (key)
     {
     case 'w':
-        updateCamera(false, POSITIVE);
+        UpdateCamera(false, POSITIVE);
         break;
     case 's':
-		updateCamera(false, NEGATIVE);
+		UpdateCamera(false, NEGATIVE);
         break;
     case 'd':
-        updateCamera(true, POSITIVE);
+        UpdateCamera(true, POSITIVE);
         break;
     case 'a':
-        updateCamera(true, NEGATIVE);
+        UpdateCamera(true, NEGATIVE);
         break;
 	case '\\':
 		camera.y -= camSpeed;
@@ -296,30 +288,56 @@ void GerenciaTeclado(unsigned char key, int x, int y) {
 	glutPostRedisplay();
 }
 
-void Timer(int _ = 0)
-{ 
-    double fx, fy;
-    calculateGravity(earth, sun, fx, fy);
-    updateBody(earth, fx, fy, simulationTime);
+void KeyboardUpFunc(unsigned char key, int x, int y) {
+	cout << count++ << endl;
+}
+
+void SimulationTick() {
+	int absSimulationSpeed = abs(simulationSpeed);
+	// timeWay: -1 (backwards in time) or 1 (forwards in time)
+	int timeWay = absSimulationSpeed/simulationSpeed;
+
+	for (int t = 0; t < absSimulationSpeed; t++) {
+        double fx, fy;
+
+        CalculateGravity(earth, sun, fx, fy);
+        UpdateBody(earth, fx, fy, timeWay*simulationTimePrecision);
+    }
+}
+
+void Timer(int _ = 0) {
+	// verificar o map
+	SimulationTick();
 
     glutPostRedisplay();
     glutTimerFunc(deltaT, Timer, _);
 }
 
-void setBodies() {
-    ifstream inputFile("Data/data.txt");
-	double _;
+void SetBodies() {
+    // ifstream inputFile("Data/data.txt");
+	// double _;
 
-    inputFile >> simulationTime >> _;
-    inputFile >> sun.mass >> sun.x >> sun.y >> sun.vx >> sun.vy;
-    inputFile >> earth.mass >> earth.x >> earth.y >> earth.vx >> earth.vy;
-	cout << "earth x: " << earth.x << endl;
-	cout << "earth y: " << earth.y << endl << endl;
+    // inputFile >> simulationSpeed >> _;
+    // inputFile >> sun.mass >> sun.x >> sun.y >> sun.vx >> sun.vy;
+    // inputFile >> earth.mass >> earth.x >> earth.y >> earth.vx >> earth.vy;
+	simulationSpeed = 3600;
+
+	sun.mass = 1.989e30;
+	sun.x = 0;
+	sun.y = 0;
+	sun.vx = 0;
+	sun.vy = 0;
+
+	earth.mass = 5.972e24;
+	earth.x = 147e9;
+	earth.y = 0;
+	earth.vx = 0;
+	earth.vy = 29783;
 }
 
 int main(int argc, char** argv) {
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);  //GLUT_DOUBLE trabalha com dois buffers: um para renderização e outro para exibição
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowPosition(0,0);
     largura = 1500;
     altura = 1000;
@@ -327,14 +345,16 @@ int main(int argc, char** argv) {
     glutInitWindowSize(largura,altura);
     glutCreateWindow("Aula Pratica 4");
 	glutSetCursor(GLUT_CURSOR_NONE);
-	resetMouse();
-	setBodies();
+	ResetMouse();
+	SetBodies();
 	Timer();
 	glutDisplayFunc(Desenha);
 	glutReshapeFunc(AlteraTamanhoJanela); // Função para ajustar o tamanho da tela
-    glutMouseFunc(GerenciaCliqueMouse);
-    glutKeyboardFunc(GerenciaTeclado); // Define qual funcao gerencia o comportamento do teclado
-    glutSpecialFunc(TeclasEspeciais); // Define qual funcao gerencia as teclas especiais
+    glutMouseFunc(MouseClick);
+	// glutIgnoreKeyRepeat(1);
+    glutKeyboardFunc(KeyboardFunc); // Define qual funcao gerencia o comportamento do teclado
+	glutKeyboardUpFunc(KeyboardUpFunc);
+    glutSpecialFunc(SpecialKeys); // Define qual funcao gerencia as teclas especiais
 	glutPassiveMotionFunc(GerenciaMovimentoMouse);
 	Inicializa();
 	glutMainLoop();
