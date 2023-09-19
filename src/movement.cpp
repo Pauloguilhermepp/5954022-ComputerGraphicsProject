@@ -1,12 +1,23 @@
 #include <GL/glut.h>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <cmath>
+#include <vector>
 
 #define POSITIVE 1
 #define NEGATIVE -1
 #define PI 3.14159265358
+#define G 6.67430e-11
 
 using namespace std;
+
+// Define a structure to represent celestial bodies
+struct Body {
+    double mass;
+    double x, y;
+    double vx, vy;
+};
 
 struct Coordinates {
 	GLfloat x;
@@ -14,22 +25,74 @@ struct Coordinates {
 	GLfloat z;
 };
 
+const int camAngleChangeRatio = 1;
+const int scrollChangeRatio = 2;
+const int minCamSpeed = 1;
+const int maxCamSpeed = 200;
+const int deltaT = 100;
+const double mouseSensitivity = 0.1;
+
+Body sun, earth;
+GLfloat fov, fAspect, largura, altura, yaw = -90, pitch = 0;
+Coordinates camera{ 0, 0, 0 }, lookAtHim{ camera.x, camera.y, camera.z-1 };
+int camSpeed = 10;
+int previousMouseX, previousMouseY;
+int simulationTime;
+
 void logCoordinates(Coordinates coordinates) {
 	cout << "x: " << coordinates.x << endl;
 	cout << "y: " << coordinates.y << endl;
 	cout << "z: " << coordinates.z << endl;
 }
 
-const int camAngleChangeRatio = 1;
-const int scrollChangeRatio = 2;
-const int minCamSpeed = 1;
-const int maxCamSpeed = 200;
-const double mouseSensitivity = 0.1;
+// Function to calculate gravitational force between two bodies
+void calculateGravity(Body& body1, Body& body2, double& fx, double& fy) {
+    double dx = body2.x - body1.x;
+    double dy = body2.y - body1.y;
+    double r = sqrt(dx * dx + dy * dy);
 
-GLfloat fov, fAspect, largura, altura, yaw = -90, pitch = 0;
-Coordinates camera{ 0, 0, 0 }, lookAtHim{ camera.x, camera.y, camera.z-1 };
-int camSpeed = 10;
-int previousMouseX, previousMouseY;
+    double F = (G * body1.mass * body2.mass) / (r * r);
+
+    fx = F * (dx / r);
+    fy = F * (dy / r);
+}
+
+// Function to update the position and velocity of a body based on forces
+void updateBody(Body& body, double fx, double fy, double dt) {
+    double ax = fx / body.mass;
+    double ay = fy / body.mass;
+
+    body.vx += ax * dt;
+    body.vy += ay * dt;
+
+    body.x += body.vx * dt;
+    body.y += body.vy * dt;
+}
+
+void drawCrosshair() {
+	glColor3f(0, 0, 0);
+	glPushMatrix();
+        glTranslated(lookAtHim.x, lookAtHim.y, lookAtHim.z);
+		glutWireSphere(0.001, 10, 10);
+    glPopMatrix();
+}
+
+void drawBodies() {
+	glColor3f(8.0f, 0.5f, 0.5f);
+    glPushMatrix();
+        glTranslated(0, 0, 0);
+        glutSolidSphere(50, 20, 20);
+    glPopMatrix();
+
+	glColor3f(0, 0.5f, 0.2f);
+    glPushMatrix();
+        glTranslated(100, 0, 0);
+        glutSolidSphere(5, 20, 20);
+    glPopMatrix();
+
+	// cout << "earth x: " << earth.x << endl;
+	// cout << "earth y: " << earth.y << endl;
+}
 
 void Desenha(void)
 {
@@ -37,17 +100,8 @@ void Desenha(void)
 
 	glViewport(0, 0, largura, altura);
 
-	glColor3f(0, 0, 0);
-	glPushMatrix();
-        glTranslated(lookAtHim.x, lookAtHim.y, lookAtHim.z);
-		glutWireSphere(0.001, 10, 10);
-    glPopMatrix();
-	
-    glColor3f(1.0f, 0.2f, 0.2f);
-    glPushMatrix();
-        glTranslated(0, 0, -250);
-        glutWireTeapot(50.0f);
-    glPopMatrix();
+	drawCrosshair();
+	drawBodies();
 
 	glutSwapBuffers();
 }
@@ -242,12 +296,30 @@ void GerenciaTeclado(unsigned char key, int x, int y) {
 	glutPostRedisplay();
 }
 
-int main(int argc, char** argv)
-{
-    glutInit(&argc, argv);
+void Timer(int _ = 0)
+{ 
+    double fx, fy;
+    calculateGravity(earth, sun, fx, fy);
+    updateBody(earth, fx, fy, simulationTime);
 
+    glutPostRedisplay();
+    glutTimerFunc(deltaT, Timer, _);
+}
+
+void setBodies() {
+    ifstream inputFile("Data/data.txt");
+	double _;
+
+    inputFile >> simulationTime >> _;
+    inputFile >> sun.mass >> sun.x >> sun.y >> sun.vx >> sun.vy;
+    inputFile >> earth.mass >> earth.x >> earth.y >> earth.vx >> earth.vy;
+	cout << "earth x: " << earth.x << endl;
+	cout << "earth y: " << earth.y << endl << endl;
+}
+
+int main(int argc, char** argv) {
+	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);  //GLUT_DOUBLE trabalha com dois buffers: um para renderização e outro para exibição
-	
     glutInitWindowPosition(0,0);
     largura = 1500;
     altura = 1000;
@@ -256,7 +328,8 @@ int main(int argc, char** argv)
     glutCreateWindow("Aula Pratica 4");
 	glutSetCursor(GLUT_CURSOR_NONE);
 	resetMouse();
-
+	setBodies();
+	Timer();
 	glutDisplayFunc(Desenha);
 	glutReshapeFunc(AlteraTamanhoJanela); // Função para ajustar o tamanho da tela
     glutMouseFunc(GerenciaCliqueMouse);
@@ -265,5 +338,4 @@ int main(int argc, char** argv)
 	glutPassiveMotionFunc(GerenciaMovimentoMouse);
 	Inicializa();
 	glutMainLoop();
-
 }
