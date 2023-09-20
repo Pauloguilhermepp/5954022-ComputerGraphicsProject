@@ -26,7 +26,7 @@ struct Coordinates {
 	GLfloat z;
 };
 
-std::map<char, bool> movementKeyPressedMap = {
+map<char, bool> movementKeyPressed = {
     { 'w', false },
     { 'a', false },
     { 's', false },
@@ -36,16 +36,15 @@ std::map<char, bool> movementKeyPressedMap = {
 };
 
 const unsigned int simulationTimePrecision = 1000; // the lower, the better;
+const int simulationSpeedChangeRatio = 10;
 const unsigned int deltaT = 16;
 const double scale = 1/5e8;
-const int camSpeedChangeRatio = 2;
-const int simulationSpeedChangeRatio = 10;
 const int minCamSpeed = 1;
 const int maxCamSpeed = 200;
 const double mouseSensitivity = 0.05;
 
 Body sun, earth;
-GLfloat fov, fAspect, largura = 1200, altura = 900, yaw = -90, pitch = 0;
+GLfloat fov = 45, fAspect, largura = 1200, altura = 900, yaw = -90, pitch = 0;
 Coordinates camera{ 0, 0, 0 }, lookAtHim{ camera.x, camera.y, camera.z-1 };
 int camSpeed = 10;
 int previousMouseX, previousMouseY;
@@ -178,8 +177,6 @@ void Inicializa(void)
 
     glEnable(GL_DEPTH_TEST);   //ativa o zBuffer
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);   //aplica o zBuffer
-
-	fov = 45;
 }
 
 void EspecificaParametrosVisualizacao(void)
@@ -280,6 +277,7 @@ void GerenciaMovimentoMouse(int x, int y) {
 
 void MouseClick(int button, int state, int x, int y)
 {
+	const int camSpeedChangeRatio = 2;
     switch (button)
     {
     case 3:
@@ -311,22 +309,34 @@ void SpecialKeys(int key, int x, int y)
 }
 
 bool isMovementKey(unsigned char key) {
-	return movementKeyPressedMap.find(key) != movementKeyPressedMap.end();
+	return movementKeyPressed.find(key) != movementKeyPressed.end();
 }
 
 void KeyboardFunc(unsigned char key, int x, int y) {
+	const int fovChangeRatio = 1;
+
 	if (isMovementKey(key)) {
-		movementKeyPressedMap.at(key) = true;
+		movementKeyPressed.at(key) = true;
 	}
-	if (key == 13) {
+
+	switch (key) {
+	case 13: // Enter
 		simulationPaused = !simulationPaused;
+		break;
+	case '=':
+		fov -= fovChangeRatio;
+		break;
+	case '-':
+		fov += fovChangeRatio;
+		break;
+	default:
+		break;
 	}
-	
 }
 
 void KeyboardUpFunc(unsigned char key, int x, int y) {
 	if (isMovementKey(key)) {
-		movementKeyPressedMap.at(key) = false;
+		movementKeyPressed.at(key) = false;
 	}
 }
 
@@ -344,23 +354,23 @@ void SimulationTick() {
 }
 
 void UpdateMovement() {
-	if (movementKeyPressedMap.at('w')) {
+	if (movementKeyPressed.at('w')) {
 		UpdateCamera(false, POSITIVE);
 	}
-	if (movementKeyPressedMap.at('a')) {
+	if (movementKeyPressed.at('a')) {
 		UpdateCamera(true, NEGATIVE);
 	}
-	if (movementKeyPressedMap.at('s')) {
+	if (movementKeyPressed.at('s')) {
 		UpdateCamera(false, NEGATIVE);
 	}
-	if (movementKeyPressedMap.at('d')) {
+	if (movementKeyPressed.at('d')) {
 		UpdateCamera(true, POSITIVE);
 	}
-	if (movementKeyPressedMap.at('\\')) {
+	if (movementKeyPressed.at('\\')) {
 		camera.y -= camSpeed;
 		lookAtHim.y -= camSpeed;
 	}
-	if (movementKeyPressedMap.at(' ')) {
+	if (movementKeyPressed.at(' ')) {
 		camera.y += camSpeed;
 		lookAtHim.y += camSpeed;
 	}
