@@ -16,8 +16,8 @@ using namespace std;
 // Define a structure to represent celestial bodies
 struct Body {
     double mass;
-    double x, y;
-    double vx, vy;
+    double x, z;
+    double vx, vz;
 };
 
 struct Coordinates {
@@ -42,6 +42,8 @@ const double scale = 1/5e8;
 const int minCamSpeed = 1;
 const int maxCamSpeed = 200;
 const double mouseSensitivity = 0.05;
+const int gridSize = 5000;
+const int gridSpacement = 50;
 
 Body sun, earth;
 GLfloat fov = 45, fAspect, largura = 1200, altura = 900, yaw = -90, pitch = 0;
@@ -58,27 +60,27 @@ void LogCoordinates(Coordinates coordinates) {
 }
 
 // Function to calculate gravitational force between two bodies
-void CalculateGravity(Body& body1, Body& body2, double& fx, double& fy) {
+void CalculateGravity(Body& body1, Body& body2, double& fx, double& fz) {
     double dx = body2.x - body1.x;
-    double dy = body2.y - body1.y;
+    double dy = body2.z - body1.z;
     double r = sqrt(dx * dx + dy * dy);
 
     double F = (G * body1.mass * body2.mass) / (r * r);
 
     fx = F * (dx / r);
-    fy = F * (dy / r);
+    fz = F * (dy / r);
 }
 
 // Function to update the position and velocity of a body based on forces
-void UpdateBody(Body& body, double fx, double fy, int dt) {
+void UpdateBody(Body& body, double fx, double fz, int dt) {
     double ax = fx / body.mass;
-    double ay = fy / body.mass;
+    double az = fz / body.mass;
 
     body.vx += ax * dt;
-    body.vy += ay * dt;
+    body.vz += az * dt;
 
     body.x += body.vx * dt;
-    body.y += body.vy * dt;
+    body.z += body.vz * dt;
 }
 
 void DrawCrosshair() {
@@ -98,7 +100,7 @@ void DrawBodies() {
 
 	glColor3f(0, 0.5f, 0.3f);
     glPushMatrix();
-        glTranslated(earth.x*scale, earth.y*scale, 0);
+        glTranslated(earth.x*scale, 0, earth.z*scale);
         glutSolidSphere(5, 20, 20);
     glPopMatrix();
 }
@@ -117,15 +119,29 @@ void DrawStars() {
 	
 }
 
+// Adapted from https://3dengine.org/Draw_a_grid/
+void DrawXZPlaneGrid() {
+	glColor3f(0.3, 0.3, 0.3);
+	glBegin(GL_LINES);
+	for(int i = -gridSize; i <= gridSize; i += gridSpacement) {
+	    glVertex3f(i,0,-gridSize);
+	    glVertex3f(i,0,gridSize);
+	    glVertex3f(-gridSize,0,i);
+	    glVertex3f(gridSize,0,i);
+	};
+	glEnd();
+}
+
 void Desenha(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glViewport(0, 0, largura, altura);
 
-	DrawStar();
-	DrawBodies();
 	DrawCrosshair();
+	DrawXZPlaneGrid();
+	// DrawStar();
+	DrawBodies();
 
 	glutSwapBuffers();
 }
@@ -346,10 +362,10 @@ void SimulationTick() {
 	int timeWay = absSimulationSpeed/simulationSpeed;
 
 	for (int t = 0; t < absSimulationSpeed; t++) {
-        double fx, fy;
+        double fx, fz;
 
-        CalculateGravity(earth, sun, fx, fy);
-        UpdateBody(earth, fx, fy, timeWay*simulationTimePrecision);
+        CalculateGravity(earth, sun, fx, fz);
+        UpdateBody(earth, fx, fz, timeWay*simulationTimePrecision);
     }
 }
 
@@ -397,15 +413,15 @@ void SetBodies() {
 
 	sun.mass = 1.989e30;
 	sun.x = 0;
-	sun.y = 0;
+	sun.z = 0;
 	sun.vx = 0;
-	sun.vy = 0;
+	sun.vz = 0;
 
 	earth.mass = 5.972e24;
 	earth.x = 147e9;
-	earth.y = 0;
+	earth.z = 0;
 	earth.vx = 0;
-	earth.vy = 29783;
+	earth.vz = 29783;
 }
 
 int main(int argc, char** argv) {
