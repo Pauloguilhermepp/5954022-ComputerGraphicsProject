@@ -13,11 +13,19 @@
 
 using namespace std;
 
+struct Color {
+	double r;
+	double g;
+	double b;
+};
+
 // Define a structure to represent celestial bodies
 struct Body {
     double mass;
     double x, z;
     double vx, vz;
+	Color color;
+	double simulatedSize;
 };
 
 struct Coordinates {
@@ -47,7 +55,7 @@ const int gridSpacement = 50;
 
 Body sun, earth;
 GLfloat fov = 45, fAspect, largura = 1200, altura = 900, yaw = -90, pitch = 0;
-Coordinates camera{ 0, 0, 0 }, lookAtHim{ camera.x, camera.y, camera.z-1 };
+Coordinates camera{ 0, 50, 300 }, lookAtHim{ camera.x, camera.y, camera.z-1 };
 int camSpeed = 10;
 int previousMouseX, previousMouseY;
 int simulationSpeed = 25;
@@ -91,18 +99,17 @@ void DrawCrosshair() {
     glPopMatrix();
 }
 
-void DrawBodies() {
-	glColor3f(1.0f, 0.5f, 0.0f);
+void DrawBody(Body body) {
+	glColor3f(body.color.r, body.color.g, body.color.b);
     glPushMatrix();
-        glTranslated(0, 0, 0);
-        glutSolidSphere(50, 50, 20);
+        glTranslated(body.x*scale, 0, body.z*scale);
+        glutSolidSphere(body.simulatedSize, 50, 20);
     glPopMatrix();
+}
 
-	glColor3f(0, 0.5f, 0.3f);
-    glPushMatrix();
-        glTranslated(earth.x*scale, 0, earth.z*scale);
-        glutSolidSphere(5, 20, 20);
-    glPopMatrix();
+void DrawBodies() {
+	DrawBody(sun);
+	DrawBody(earth);
 }
 
 void DrawStar() {
@@ -119,7 +126,6 @@ void DrawStars() {
 	
 }
 
-// Adapted from https://3dengine.org/Draw_a_grid/
 void DrawXZPlaneGrid() {
 	glColor3f(0.3, 0.3, 0.3);
 	glBegin(GL_LINES);
@@ -416,12 +422,20 @@ void SetBodies() {
 	sun.z = 0;
 	sun.vx = 0;
 	sun.vz = 0;
+	sun.color.r = 1.0;
+	sun.color.g = 0.7;
+	sun.color.b = 0.0;
+	sun.simulatedSize = 50;
 
 	earth.mass = 5.972e24;
 	earth.x = 147e9;
 	earth.z = 0;
 	earth.vx = 0;
 	earth.vz = 29783;
+	earth.color.r = 0.0;
+	earth.color.g = 0.5;
+	earth.color.b = 0.3;
+	earth.simulatedSize = 5;
 }
 
 int main(int argc, char** argv) {
