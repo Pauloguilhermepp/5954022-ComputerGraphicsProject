@@ -120,7 +120,7 @@ void DrawStars() {
 
 void Desenha(void)
 {
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glViewport(0, 0, largura, altura);
 
@@ -400,7 +400,7 @@ void SetBodies() {
 
 int main(int argc, char** argv) {
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowPosition(0,0);
 	fAspect = (GLfloat)largura / (GLfloat)altura;
     glutInitWindowSize(largura,altura);
