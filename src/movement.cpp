@@ -26,7 +26,7 @@ struct Coordinates {
 	GLfloat z;
 };
 
-std::map<char, bool> movementKeyPressed = {
+std::map<char, bool> movementKeyPressedMap = {
     { 'w', false },
     { 'a', false },
     { 's', false },
@@ -35,23 +35,22 @@ std::map<char, bool> movementKeyPressed = {
 	{ '\\', false}
 };
 
-int count;
-
-const unsigned int simulationTimePrecision = 1; // the lower, the better;
+const unsigned int simulationTimePrecision = 1000; // the lower, the better;
 const unsigned int deltaT = 16;
 const double scale = 1/5e8;
 const int camSpeedChangeRatio = 2;
-const int simulationSpeedChangeRatio = 1000;
+const int simulationSpeedChangeRatio = 10;
 const int minCamSpeed = 1;
 const int maxCamSpeed = 200;
-const double mouseSensitivity = 0.1;
+const double mouseSensitivity = 0.05;
 
 Body sun, earth;
-GLfloat fov, fAspect, largura, altura, yaw = -90, pitch = 0;
+GLfloat fov, fAspect, largura = 1200, altura = 900, yaw = -90, pitch = 0;
 Coordinates camera{ 0, 0, 0 }, lookAtHim{ camera.x, camera.y, camera.z-1 };
 int camSpeed = 10;
 int previousMouseX, previousMouseY;
-int simulationSpeed;
+int simulationSpeed = 25;
+bool simulationPaused = false;
 
 void LogCoordinates(Coordinates coordinates) {
 	cout << "x: " << coordinates.x << endl;
@@ -84,7 +83,7 @@ void UpdateBody(Body& body, double fx, double fy, int dt) {
 }
 
 void DrawCrosshair() {
-	glColor3f(0, 0, 0);
+	glColor3f(0, 1, 1);
 	glPushMatrix();
         glTranslated(lookAtHim.x, lookAtHim.y, lookAtHim.z);
 		glutWireSphere(0.001, 10, 10);
@@ -92,17 +91,31 @@ void DrawCrosshair() {
 }
 
 void DrawBodies() {
-	glColor3f(8.0f, 0.5f, 0.5f);
+	glColor3f(1.0f, 0.5f, 0.0f);
     glPushMatrix();
         glTranslated(0, 0, 0);
-        glutSolidSphere(50, 20, 20);
+        glutSolidSphere(50, 50, 20);
     glPopMatrix();
 
-	glColor3f(0, 0.5f, 0.2f);
+	glColor3f(0, 0.5f, 0.3f);
     glPushMatrix();
         glTranslated(earth.x*scale, earth.y*scale, 0);
         glutSolidSphere(5, 20, 20);
     glPopMatrix();
+}
+
+void DrawStar() {
+	double brightness = 0.5/(rand()+1) + 0.5;
+	double angle = rand();
+	glPushMatrix();
+		glRotated(angle, camera.x, camera.y, camera.z);
+        glTranslated(lookAtHim.x+10, lookAtHim.y+10, lookAtHim.z+10);
+		glutWireSphere(0.001, 10, 10);
+    glPopMatrix();
+}
+
+void DrawStars() {
+	
 }
 
 void Desenha(void)
@@ -111,17 +124,59 @@ void Desenha(void)
 
 	glViewport(0, 0, largura, altura);
 
-	DrawCrosshair();
+	DrawStar();
 	DrawBodies();
+	DrawCrosshair();
 
 	glutSwapBuffers();
 }
 
 void Inicializa(void)
 {
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	/*
+	GLfloat luzAmbiente[4]={0.2, 0.2, 0.2, 1.0};   // {R, G, B, alfa}
+	GLfloat luzDifusa[4]={0.5, 0.5, 0.5, 1.0};	   // o 4o componente, alfa, controla a opacidade/transparência da luz
+	GLfloat luzEspecular[4]={1.0, 1.0, 1.0, 1.0};
+	GLfloat posicaoLuz[4]={50.0, 50.0, 50.0, 1.0};  // aqui o 4o componente indica o tipo de fonte:
+                                                    // 0 para luz direcional (no infinito) e 1 para luz pontual (em x, y, z)
 
-    // glEnable(GL_DEPTH_TEST);   //ativa o zBuffer
+	// Capacidade de brilho do material
+	GLfloat especularidade[4]={1.0, 1.0, 1.0, 1.0}; 
+	GLint especMaterial = 100;
+
+ 	// Especifica a cor de fundo da janela
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	
+	// Habilita o modelo de colorização de Gouraud
+	glShadeModel(GL_SMOOTH);  // a cor de cada ponto da primitiva é interpolada a partir dos vértices
+    //glShadeModel(GL_FLAT);  // a cor de cada primitiva é única em todos os pontos
+
+	// Define a refletância do material 
+	glMaterialfv(GL_FRONT, GL_SPECULAR, especularidade);
+	// Define a concentração do brilho
+	glMateriali(GL_FRONT, GL_SHININESS, especMaterial);
+
+	// Ativa o uso da luz ambiente 
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, luzAmbiente);
+
+	// Define os parâmetros da luz de número 0
+	glLightfv(GL_LIGHT0, GL_AMBIENT, luzAmbiente); 
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, luzDifusa );
+	glLightfv(GL_LIGHT0, GL_SPECULAR, luzEspecular );
+	glLightfv(GL_LIGHT0, GL_POSITION, posicaoLuz );
+
+	// Habilita a definição da cor do material a partir da cor corrente
+	glEnable(GL_COLOR_MATERIAL);
+	//Habilita o uso de iluminação
+	glEnable(GL_LIGHTING);  
+	// Habilita a luz de número 0
+	glEnable(GL_LIGHT0);
+	// Habilita o depth-buffering
+	glEnable(GL_DEPTH_TEST);
+	*/
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+    glEnable(GL_DEPTH_TEST);   //ativa o zBuffer
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);   //aplica o zBuffer
 
 	fov = 45;
@@ -253,43 +308,26 @@ void SpecialKeys(int key, int x, int y)
 			simulationSpeed -= simulationSpeedChangeRatio;
 			break;
     }
+}
 
-	// EspecificaParametrosVisualizacao();
-	// glutPostRedisplay();
+bool isMovementKey(unsigned char key) {
+	return movementKeyPressedMap.find(key) != movementKeyPressedMap.end();
 }
 
 void KeyboardFunc(unsigned char key, int x, int y) {
-	// setar o map
-    switch (key)
-    {
-    case 'w':
-        UpdateCamera(false, POSITIVE);
-        break;
-    case 's':
-		UpdateCamera(false, NEGATIVE);
-        break;
-    case 'd':
-        UpdateCamera(true, POSITIVE);
-        break;
-    case 'a':
-        UpdateCamera(true, NEGATIVE);
-        break;
-	case '\\':
-		camera.y -= camSpeed;
-		lookAtHim.y -= camSpeed;
-		break;
-	case ' ':
-		camera.y += camSpeed;
-		lookAtHim.y += camSpeed;
-		break;
-    }
-
-	EspecificaParametrosVisualizacao();
-	glutPostRedisplay();
+	if (isMovementKey(key)) {
+		movementKeyPressedMap.at(key) = true;
+	}
+	if (key == 13) {
+		simulationPaused = !simulationPaused;
+	}
+	
 }
 
 void KeyboardUpFunc(unsigned char key, int x, int y) {
-	cout << count++ << endl;
+	if (isMovementKey(key)) {
+		movementKeyPressedMap.at(key) = false;
+	}
 }
 
 void SimulationTick() {
@@ -305,10 +343,36 @@ void SimulationTick() {
     }
 }
 
-void Timer(int _ = 0) {
-	// verificar o map
-	SimulationTick();
+void UpdateMovement() {
+	if (movementKeyPressedMap.at('w')) {
+		UpdateCamera(false, POSITIVE);
+	}
+	if (movementKeyPressedMap.at('a')) {
+		UpdateCamera(true, NEGATIVE);
+	}
+	if (movementKeyPressedMap.at('s')) {
+		UpdateCamera(false, NEGATIVE);
+	}
+	if (movementKeyPressedMap.at('d')) {
+		UpdateCamera(true, POSITIVE);
+	}
+	if (movementKeyPressedMap.at('\\')) {
+		camera.y -= camSpeed;
+		lookAtHim.y -= camSpeed;
+	}
+	if (movementKeyPressedMap.at(' ')) {
+		camera.y += camSpeed;
+		lookAtHim.y += camSpeed;
+	}
+}
 
+void Timer(int _ = 0) {
+	UpdateMovement();
+	if (simulationSpeed != 0 && !simulationPaused) {
+		SimulationTick();
+	}
+
+	EspecificaParametrosVisualizacao();
     glutPostRedisplay();
     glutTimerFunc(deltaT, Timer, _);
 }
@@ -320,7 +384,6 @@ void SetBodies() {
     // inputFile >> simulationSpeed >> _;
     // inputFile >> sun.mass >> sun.x >> sun.y >> sun.vx >> sun.vy;
     // inputFile >> earth.mass >> earth.x >> earth.y >> earth.vx >> earth.vy;
-	simulationSpeed = 3600;
 
 	sun.mass = 1.989e30;
 	sun.x = 0;
@@ -339,8 +402,6 @@ int main(int argc, char** argv) {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowPosition(0,0);
-    largura = 1500;
-    altura = 1000;
 	fAspect = (GLfloat)largura / (GLfloat)altura;
     glutInitWindowSize(largura,altura);
     glutCreateWindow("Aula Pratica 4");
