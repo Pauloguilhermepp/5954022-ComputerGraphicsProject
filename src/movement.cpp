@@ -50,13 +50,14 @@ map<char, bool> movementKeyPressed = {
 const unsigned int simulationTimePrecision = 1000; // the lower, the better;
 const int simulationSpeedChangeRatio = 10;
 const unsigned int deltaT = 16;
-const GLfloat scale = 1/5e8;
+const GLfloat scale = 1/2e8;
 const int minCamSpeed = 1;
 const int maxCamSpeed = 200;
 const GLfloat mouseSensitivity = 0.05;
-const int gridSize = 7000;
-const int gridSpacement = 50;
-const int numberOfStars = 100000;
+const int gridSize = 1e4;
+const int gridSpacement = 150;
+const int numberOfStars = 1e5;
+const int renderDistance = 3e4;
 
 Body sun, earth, moon;
 Star stars[numberOfStars];
@@ -65,7 +66,7 @@ Coordinates camera{ 0, 50, 300 }, lookAtHim{ camera.x, camera.y, camera.z-1 };
 int camSpeed = 10;
 int previousMouseX, previousMouseY;
 int simulationSpeed = 25;
-bool simulationPaused = true;
+bool simulationPaused = false;
 
 void LogCoordinates(Coordinates coordinates) {
 	cout << "x: " << coordinates.x << endl;
@@ -210,7 +211,7 @@ void EspecificaParametrosVisualizacao(void)
 	// Inicializa sistema de coordenadas de projeção
 	glLoadIdentity();
 
-	gluPerspective(fov, fAspect, 0.1, 10000);
+	gluPerspective(fov, fAspect, 0.1, renderDistance);
 
 	// Especifica sistema de coordenadas do modelo
 	glMatrixMode(GL_MODELVIEW);
@@ -473,7 +474,7 @@ int main(int argc, char** argv) {
 	glutDisplayFunc(Desenha);
 	glutReshapeFunc(AlteraTamanhoJanela); // Função para ajustar o tamanho da tela
     glutMouseFunc(MouseClick);
-	glutIgnoreKeyRepeat(1);
+	// glutIgnoreKeyRepeat(1);
     glutKeyboardFunc(KeyboardFunc); // Define qual funcao gerencia o comportamento do teclado
 	glutKeyboardUpFunc(KeyboardUpFunc);
     glutSpecialFunc(SpecialKeys); // Define qual funcao gerencia as teclas especiais
