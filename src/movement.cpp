@@ -14,24 +14,28 @@
 using namespace std;
 
 struct Color {
-	double r;
-	double g;
-	double b;
+	GLfloat r;
+	GLfloat g;
+	GLfloat b;
 };
 
-// Define a structure to represent celestial bodies
 struct Body {
-    double mass;
-    double x, z;
-    double vx, vz;
+    GLfloat mass;
+    GLfloat x, z;
+    GLfloat vx, vz;
 	Color color;
-	double simulatedSize;
+	GLfloat simulatedSize;
 };
 
 struct Coordinates {
 	GLfloat x;
 	GLfloat y;
 	GLfloat z;
+};
+
+struct Star {
+	GLfloat brightness;
+	Coordinates pos;
 };
 
 map<char, bool> movementKeyPressed = {
@@ -46,20 +50,22 @@ map<char, bool> movementKeyPressed = {
 const unsigned int simulationTimePrecision = 1000; // the lower, the better;
 const int simulationSpeedChangeRatio = 10;
 const unsigned int deltaT = 16;
-const double scale = 1/5e8;
+const GLfloat scale = 1/5e8;
 const int minCamSpeed = 1;
 const int maxCamSpeed = 200;
-const double mouseSensitivity = 0.05;
-const int gridSize = 5000;
+const GLfloat mouseSensitivity = 0.05;
+const int gridSize = 7000;
 const int gridSpacement = 50;
+const int numberOfStars = 100000;
 
-Body sun, earth;
-GLfloat fov = 45, fAspect, largura = 1200, altura = 900, yaw = -90, pitch = 0;
+Body sun, earth, moon;
+Star stars[numberOfStars];
+GLfloat fov = 45, fAspect, width = 1200, hight = 900, cameraYaw = -90, cameraPitch = 0;
 Coordinates camera{ 0, 50, 300 }, lookAtHim{ camera.x, camera.y, camera.z-1 };
 int camSpeed = 10;
 int previousMouseX, previousMouseY;
 int simulationSpeed = 25;
-bool simulationPaused = false;
+bool simulationPaused = true;
 
 void LogCoordinates(Coordinates coordinates) {
 	cout << "x: " << coordinates.x << endl;
@@ -68,35 +74,34 @@ void LogCoordinates(Coordinates coordinates) {
 }
 
 // Function to calculate gravitational force between two bodies
-void CalculateGravity(Body& body1, Body& body2, double& fx, double& fz) {
-    double dx = body2.x - body1.x;
-    double dy = body2.z - body1.z;
-    double r = sqrt(dx * dx + dy * dy);
+void CalculateGravity(Body& body1, Body& body2, GLfloat& fx, GLfloat& fz) {
+    GLfloat dx = body2.x - body1.x;
+    GLfloat dz = body2.z - body1.z;
+    GLfloat r = sqrt(dx * dx + dz * dz);
 
-    double F = (G * body1.mass * body2.mass) / (r * r);
+    GLfloat F = (G * body1.mass * body2.mass) / (r * r);
 
     fx = F * (dx / r);
-    fz = F * (dy / r);
+    fz = F * (dz / r);
 }
 
 // Function to update the position and velocity of a body based on forces
-void UpdateBody(Body& body, double fx, double fz, int dt) {
-    double ax = fx / body.mass;
-    double az = fz / body.mass;
+void UpdateBody(Body& body, GLfloat fx, GLfloat fz, int dt, Coordinates reference) {
+    GLfloat ax = fx / body.mass;
+    GLfloat az = fz / body.mass;
 
     body.vx += ax * dt;
     body.vz += az * dt;
 
-    body.x += body.vx * dt;
-    body.z += body.vz * dt;
+    body.x += body.vx * dt + reference.x;
+    body.z += body.vz * dt + reference.z;
 }
 
 void DrawCrosshair() {
 	glColor3f(0, 1, 1);
-	glPushMatrix();
-        glTranslated(lookAtHim.x, lookAtHim.y, lookAtHim.z);
-		glutWireSphere(0.001, 10, 10);
-    glPopMatrix();
+	glBegin(GL_POINTS);
+		glVertex3f(lookAtHim.x, lookAtHim.y, lookAtHim.z);
+	glEnd();
 }
 
 void DrawBody(Body body) {
@@ -110,20 +115,16 @@ void DrawBody(Body body) {
 void DrawBodies() {
 	DrawBody(sun);
 	DrawBody(earth);
-}
-
-void DrawStar() {
-	double brightness = 0.5/(rand()+1) + 0.5;
-	double angle = rand();
-	glPushMatrix();
-		glRotated(angle, camera.x, camera.y, camera.z);
-        glTranslated(lookAtHim.x+10, lookAtHim.y+10, lookAtHim.z+10);
-		glutWireSphere(0.001, 10, 10);
-    glPopMatrix();
+	DrawBody(moon);
 }
 
 void DrawStars() {
-	
+	glBegin(GL_POINTS);
+		for (int i = 0; i < numberOfStars; i++) {
+			glColor3f(stars[i].brightness, stars[i].brightness, stars[i].brightness);
+			glVertex3f(stars[i].pos.x + camera.x, stars[i].pos.y + camera.y, stars[i].pos.z + camera.z);
+		}
+	glEnd();
 }
 
 void DrawXZPlaneGrid() {
@@ -140,13 +141,14 @@ void DrawXZPlaneGrid() {
 
 void Desenha(void)
 {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glViewport(0, 0, width, hight);
 
-	glViewport(0, 0, largura, altura);
+	glClear(GL_COLOR_BUFFER_BIT);
+	DrawStars(); // Draw the stars before all other things and clearing the depth buffer, so the stars are behind everything
+	glClear(GL_DEPTH_BUFFER_BIT);
 
 	DrawCrosshair();
 	DrawXZPlaneGrid();
-	// DrawStar();
 	DrawBodies();
 
 	glutSwapBuffers();
@@ -221,15 +223,14 @@ void EspecificaParametrosVisualizacao(void)
 }
 
 // Função callback chamada quando o tamanho da janela é alterado 
-void AlteraTamanhoJanela(GLint largura, GLint altura)
-{
+void AlteraTamanhoJanela(GLint width, GLint hight) {
 	// Para previnir uma divisão por zero
-	if (altura == 0) altura = 1;
+	if (hight == 0) hight = 1;
 
-	glViewport(0, 0, largura, altura);
+	glViewport(0, 0, width, hight);
 
 	// Calcula a correção de aspecto
-	fAspect = (GLfloat)largura / (GLfloat)altura;
+	fAspect = (GLfloat)width / (GLfloat)hight;
 
 	EspecificaParametrosVisualizacao();
 }
@@ -237,8 +238,7 @@ void AlteraTamanhoJanela(GLint largura, GLint altura)
 Coordinates lookAtFloorDirection() {
 	GLfloat deltaX = lookAtHim.x - camera.x, deltaZ = lookAtHim.z - camera.z;
 	GLfloat size = sqrt(deltaX*deltaX + deltaZ*deltaZ);
-	if (size == 0)
-	{
+	if (size == 0) {
 		return { 0, 0, 1 };
 	}
 	
@@ -246,9 +246,13 @@ Coordinates lookAtFloorDirection() {
 }
 
 void ResetMouse() {
-	previousMouseX = largura/2;
-	previousMouseY = altura/2;
-	glutWarpPointer(largura/2, altura/2);
+	previousMouseX = width/2;
+	previousMouseY = hight/2;
+	glutWarpPointer(width/2, hight/2);
+}
+
+GLfloat radians(GLfloat degree) {
+	return degree * (PI/180);
 }
 
 void UpdateCamera(bool sidesOrientation, int way) {
@@ -269,12 +273,8 @@ void UpdateCamera(bool sidesOrientation, int way) {
 	lookAtHim.z += deltaZ;
 }
 
-GLfloat radians(GLfloat degree) {
-	return degree * (PI/180);
-}
-
 void GerenciaMovimentoMouse(int x, int y) {
-	if (x > largura-100 || y > altura-100 || x < 100 || y < 100) {
+	if (x > width-100 || y > hight-100 || x < 100 || y < 100) {
 		ResetMouse();
 		return;
 	}
@@ -285,23 +285,21 @@ void GerenciaMovimentoMouse(int x, int y) {
 	previousMouseX = x;
 	previousMouseY = y;
 
-	yaw += deltaX*mouseSensitivity;	
-	pitch -= deltaY*mouseSensitivity;
-	if (pitch >= 90) pitch = 89.9; else if (pitch <= -90) pitch = -89.9;
+	cameraYaw += deltaX*mouseSensitivity;	
+	cameraPitch -= deltaY*mouseSensitivity;
+	if (cameraPitch >= 90) cameraPitch = 89.9; else if (cameraPitch <= -90) cameraPitch = -89.9;
 
-	lookAtHim.x = camera.x + cos(radians(yaw)) * cos(radians(pitch));
-	lookAtHim.y = camera.y + sin(radians(pitch));
-	lookAtHim.z = camera.z + sin(radians(yaw)) * cos(radians(pitch));
+	lookAtHim.x = camera.x + cos(radians(cameraYaw)) * cos(radians(cameraPitch));
+	lookAtHim.y = camera.y + sin(radians(cameraPitch));
+	lookAtHim.z = camera.z + sin(radians(cameraYaw)) * cos(radians(cameraPitch));
 	
 	EspecificaParametrosVisualizacao();
 	glutPostRedisplay();
 }
 
-void MouseClick(int button, int state, int x, int y)
-{
+void MouseClick(int button, int state, int x, int y) {
 	const int camSpeedChangeRatio = 2;
-    switch (button)
-    {
+    switch (button) {
     case 3:
         camSpeed = camSpeed > maxCamSpeed ? maxCamSpeed : camSpeed + camSpeedChangeRatio;
         break;
@@ -313,10 +311,8 @@ void MouseClick(int button, int state, int x, int y)
     }
 }
 
-void SpecialKeys(int key, int x, int y)
-{
-    switch (key)
-    {
+void SpecialKeys(int key, int x, int y) {
+    switch (key) {
 		case GLUT_KEY_LEFT:
 			break;
 		case GLUT_KEY_RIGHT:
@@ -366,12 +362,17 @@ void SimulationTick() {
 	int absSimulationSpeed = abs(simulationSpeed);
 	// timeWay: -1 (backwards in time) or 1 (forwards in time)
 	int timeWay = absSimulationSpeed/simulationSpeed;
+	Coordinates sunReference, earthReference;
 
 	for (int t = 0; t < absSimulationSpeed; t++) {
-        double fx, fz;
+        GLfloat fx, fz;
 
         CalculateGravity(earth, sun, fx, fz);
-        UpdateBody(earth, fx, fz, timeWay*simulationTimePrecision);
+		sunReference = { sun.x, 0, sun.z };
+        UpdateBody(earth, fx, fz, timeWay*simulationTimePrecision, sunReference);
+		CalculateGravity(moon, earth, fx, fz);
+		earthReference = { earth.x, 0, earth.z };
+        UpdateBody(moon, fx, fz, timeWay*simulationTimePrecision, earthReference);
     }
 }
 
@@ -409,14 +410,21 @@ void Timer(int _ = 0) {
     glutTimerFunc(deltaT, Timer, _);
 }
 
+void InitStars() {
+	int yaw, pitch;
+	GLfloat brightness;
+	for (int i = 0; i < numberOfStars; i++) {
+		yaw = rand();
+		pitch = rand();
+		brightness = rand()/GLfloat(RAND_MAX);
+		stars[i].pos.x = cos(radians(yaw)) * cos(radians(pitch));
+		stars[i].pos.y = sin(radians(pitch));
+		stars[i].pos.z = sin(radians(yaw)) * cos(radians(pitch));
+		stars[i].brightness = brightness;
+	}
+}
+
 void SetBodies() {
-    // ifstream inputFile("Data/data.txt");
-	// double _;
-
-    // inputFile >> simulationSpeed >> _;
-    // inputFile >> sun.mass >> sun.x >> sun.y >> sun.vx >> sun.vy;
-    // inputFile >> earth.mass >> earth.x >> earth.y >> earth.vx >> earth.vy;
-
 	sun.mass = 1.989e30;
 	sun.x = 0;
 	sun.z = 0;
@@ -436,23 +444,36 @@ void SetBodies() {
 	earth.color.g = 0.5;
 	earth.color.b = 0.3;
 	earth.simulatedSize = 5;
+
+	// problemas de escala com a lua
+	moon.mass = 7.347e22;
+	moon.x = earth.x + 384400;
+	moon.z = earth.z;
+	moon.vx = 0;
+	moon.vz = 3679;
+	moon.color.r = 0.3;
+	moon.color.g = 0.3;
+	moon.color.b = 0.3;
+	moon.simulatedSize = 1;
+
+	InitStars();
 }
 
 int main(int argc, char** argv) {
+	SetBodies();
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowPosition(0,0);
-	fAspect = (GLfloat)largura / (GLfloat)altura;
-    glutInitWindowSize(largura,altura);
+	fAspect = width / hight;
+    glutInitWindowSize(width, hight);
     glutCreateWindow("Aula Pratica 4");
 	glutSetCursor(GLUT_CURSOR_NONE);
 	ResetMouse();
-	SetBodies();
 	Timer();
 	glutDisplayFunc(Desenha);
 	glutReshapeFunc(AlteraTamanhoJanela); // Função para ajustar o tamanho da tela
     glutMouseFunc(MouseClick);
-	// glutIgnoreKeyRepeat(1);
+	glutIgnoreKeyRepeat(1);
     glutKeyboardFunc(KeyboardFunc); // Define qual funcao gerencia o comportamento do teclado
 	glutKeyboardUpFunc(KeyboardUpFunc);
     glutSpecialFunc(SpecialKeys); // Define qual funcao gerencia as teclas especiais
