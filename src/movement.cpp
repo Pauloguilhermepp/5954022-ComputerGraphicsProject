@@ -61,7 +61,7 @@ const int renderDistance = 3e4;
 
 Body sun, earth, moon;
 Star stars[numberOfStars];
-GLfloat fov = 45, fAspect, width = 1200, hight = 900, cameraYaw = -90, cameraPitch = 0;
+GLfloat fov = 60, fAspect, width = 1200, hight = 900, cameraYaw = -90, cameraPitch = 0;
 Coordinates camera{ 0, 50, 300 }, lookAtHim{ camera.x, camera.y, camera.z-1 };
 int camSpeed = 10;
 int previousMouseX, previousMouseY;
@@ -87,7 +87,7 @@ void CalculateGravity(Body& body1, Body& body2, GLfloat& fx, GLfloat& fz) {
 }
 
 // Function to update the position and velocity of a body based on forces
-void UpdateBody(Body& body, GLfloat fx, GLfloat fz, int dt, Coordinates reference) {
+void UpdateBody(Body& body, GLfloat fx, GLfloat fz, int dt, Body& reference) {
     GLfloat ax = fx / body.mass;
     GLfloat az = fz / body.mass;
 
@@ -116,7 +116,7 @@ void DrawBody(Body body) {
 void DrawBodies() {
 	DrawBody(sun);
 	DrawBody(earth);
-	DrawBody(moon);
+	// DrawBody(moon);
 }
 
 void DrawStars() {
@@ -275,7 +275,7 @@ void UpdateCamera(bool sidesOrientation, int way) {
 }
 
 void GerenciaMovimentoMouse(int x, int y) {
-	if (x > width-100 || y > hight-100 || x < 100 || y < 100) {
+	if (x > width-200 || y > hight-200 || x < 200 || y < 200) {
 		ResetMouse();
 		return;
 	}
@@ -363,17 +363,14 @@ void SimulationTick() {
 	int absSimulationSpeed = abs(simulationSpeed);
 	// timeWay: -1 (backwards in time) or 1 (forwards in time)
 	int timeWay = absSimulationSpeed/simulationSpeed;
-	Coordinates sunReference, earthReference;
 
 	for (int t = 0; t < absSimulationSpeed; t++) {
         GLfloat fx, fz;
 
         CalculateGravity(earth, sun, fx, fz);
-		sunReference = { sun.x, 0, sun.z };
-        UpdateBody(earth, fx, fz, timeWay*simulationTimePrecision, sunReference);
-		CalculateGravity(moon, earth, fx, fz);
-		earthReference = { earth.x, 0, earth.z };
-        UpdateBody(moon, fx, fz, timeWay*simulationTimePrecision, earthReference);
+        UpdateBody(earth, fx, fz, timeWay*simulationTimePrecision, sun);
+		// CalculateGravity(moon, earth, fx, fz);
+        // UpdateBody(moon, fx, fz, timeWay*simulationTimePrecision, earth);
     }
 }
 
