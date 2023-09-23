@@ -464,7 +464,7 @@ int main(int argc, char** argv) {
     glutInitWindowPosition(0,0);
 	fAspect = width / hight;
     glutInitWindowSize(width, hight);
-    glutCreateWindow("Aula Pratica 4");
+    glutCreateWindow("Solar System Simulation");
 	glutSetCursor(GLUT_CURSOR_NONE);
 	ResetMouse();
 	Timer();
