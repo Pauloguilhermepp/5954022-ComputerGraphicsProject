@@ -4,7 +4,7 @@ The current project aims to simulate the solar system using OpenGL. It provides 
 
 ## Collaborators
 This project was made by:
-* Ângelo Pilotto - NºUSP: 
+* Ângelo Pilotto - NºUSP: 12542647
 * Paulo Guilherme Pinheiro Pereira - NºUSP: 12542755
 
 ## Running the Simulation
@@ -53,6 +53,7 @@ The simulation renders the following elements:
   - `D`: Strafe right.
   - `Spacebar`: Move upward.
   - `\`: Move downward.
+  - `Alt + F4`: Close the simulation.
 
 - **Mouse**: You can change the camera's direction using the mouse. Move the mouse to look around. Clicking the left mouse button allows you to interact with objects in the simulation.
 
