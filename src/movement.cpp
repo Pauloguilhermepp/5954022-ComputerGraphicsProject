@@ -13,12 +13,14 @@
 
 using namespace std;
 
+// Define a structure for holding RGB color values
 struct Color {
 	GLfloat r;
 	GLfloat g;
 	GLfloat b;
 };
 
+// Define a structure for representing celestial bodies
 struct Body {
     GLfloat mass;
     GLfloat x, z;
@@ -27,17 +29,20 @@ struct Body {
 	GLfloat simulatedSize;
 };
 
+// Define a structure for representing 3D coordinates
 struct Coordinates {
 	GLfloat x;
 	GLfloat y;
 	GLfloat z;
 };
 
+// Define a structure for representing stars in the simulation
 struct Star {
 	GLfloat brightness;
 	Coordinates pos;
 };
 
+// Create a map to track movement key presses
 map<char, bool> movementKeyPressed = {
     { 'w', false },
     { 'a', false },
@@ -47,6 +52,7 @@ map<char, bool> movementKeyPressed = {
 	{ '\\', false}
 };
 
+// Constants and parameters used in the simulation
 const unsigned int simulationTimePrecision = 1000; // the lower, the better;
 const int simulationSpeedChangeRatio = 10;
 const unsigned int deltaT = 16;
@@ -59,6 +65,7 @@ const int gridSpacement = 150;
 const int numberOfStars = 1e5;
 const int renderDistance = 3e4;
 
+// Define objects representing celestial bodies and camera settings
 Body sun, earth, moon;
 Star stars[numberOfStars];
 GLfloat fov = 60, fAspect, width = 1200, hight = 900, cameraYaw = -90, cameraPitch = 0;
@@ -68,6 +75,7 @@ int previousMouseX, previousMouseY;
 int simulationSpeed = 25;
 bool simulationPaused = false;
 
+// Function to log coordinates for debugging purposes
 void LogCoordinates(Coordinates coordinates) {
 	cout << "x: " << coordinates.x << endl;
 	cout << "y: " << coordinates.y << endl;
@@ -98,6 +106,7 @@ void UpdateBody(Body& body, GLfloat fx, GLfloat fz, int dt, Body& reference) {
     body.z += body.vz * dt + reference.z;
 }
 
+// Function to draw a crosshair at the center of the screen
 void DrawCrosshair() {
 	glColor3f(0, 1, 1);
 	glBegin(GL_POINTS);
@@ -105,6 +114,7 @@ void DrawCrosshair() {
 	glEnd();
 }
 
+// Function to draw a celestial body
 void DrawBody(Body body) {
 	glColor3f(body.color.r, body.color.g, body.color.b);
     glPushMatrix();
@@ -113,12 +123,14 @@ void DrawBody(Body body) {
     glPopMatrix();
 }
 
+// Function to draw all celestial bodies
 void DrawBodies() {
 	DrawBody(sun);
 	DrawBody(earth);
 	// DrawBody(moon);
 }
 
+// Function to draw stars
 void DrawStars() {
 	glBegin(GL_POINTS);
 		for (int i = 0; i < numberOfStars; i++) {
@@ -128,6 +140,7 @@ void DrawStars() {
 	glEnd();
 }
 
+// Function to draw a grid in the X-Z plane
 void DrawXZPlaneGrid() {
 	glColor3f(0.3, 0.3, 0.3);
 	glBegin(GL_LINES);
@@ -140,12 +153,14 @@ void DrawXZPlaneGrid() {
 	glEnd();
 }
 
+// Function to render the entire scene, including stars, celestial bodies, and grid
 void Desenha(void)
 {
 	glViewport(0, 0, width, hight);
 
+	// Draw the stars before all other things and clearing the depth buffer, so the stars are behind everything
 	glClear(GL_COLOR_BUFFER_BIT);
-	DrawStars(); // Draw the stars before all other things and clearing the depth buffer, so the stars are behind everything
+	DrawStars();
 	glClear(GL_DEPTH_BUFFER_BIT);
 
 	DrawCrosshair();
@@ -155,6 +170,7 @@ void Desenha(void)
 	glutSwapBuffers();
 }
 
+// Initialize OpenGL settings
 void Inicializa(void)
 {
 	/*
@@ -200,22 +216,21 @@ void Inicializa(void)
 	*/
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-    glEnable(GL_DEPTH_TEST);   //ativa o zBuffer
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);   //aplica o zBuffer
+    glEnable(GL_DEPTH_TEST);   //Turning on zBuffer
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);   //Applying zBuffer
 }
 
+// Set up the viewing parameters
 void EspecificaParametrosVisualizacao(void)
 {
-	// Especifica sistema de coordenadas de projeção
 	glMatrixMode(GL_PROJECTION);
-	// Inicializa sistema de coordenadas de projeção
+
 	glLoadIdentity();
 
 	gluPerspective(fov, fAspect, 0.1, renderDistance);
 
-	// Especifica sistema de coordenadas do modelo
 	glMatrixMode(GL_MODELVIEW);
-	// Inicializa sistema de coordenadas do modelo
+
 	glLoadIdentity();
 
 	gluLookAt(camera.x, camera.y, camera.z,
@@ -223,7 +238,7 @@ void EspecificaParametrosVisualizacao(void)
               0, 1, 0);
 }
 
-// Função callback chamada quando o tamanho da janela é alterado 
+// Callback function for window resizing
 void AlteraTamanhoJanela(GLint width, GLint hight) {
 	// Para previnir uma divisão por zero
 	if (hight == 0) hight = 1;
@@ -236,6 +251,7 @@ void AlteraTamanhoJanela(GLint width, GLint hight) {
 	EspecificaParametrosVisualizacao();
 }
 
+// Calculate the direction vector pointing to the floor
 Coordinates lookAtFloorDirection() {
 	GLfloat deltaX = lookAtHim.x - camera.x, deltaZ = lookAtHim.z - camera.z;
 	GLfloat size = sqrt(deltaX*deltaX + deltaZ*deltaZ);
@@ -246,16 +262,19 @@ Coordinates lookAtFloorDirection() {
 	return { deltaX/size, 0, deltaZ/size };
 }
 
+// Reset the mouse to the center of the window
 void ResetMouse() {
 	previousMouseX = width/2;
 	previousMouseY = hight/2;
 	glutWarpPointer(width/2, hight/2);
 }
 
+// Convert degrees to radians
 GLfloat radians(GLfloat degree) {
 	return degree * (PI/180);
 }
 
+// Update the camera's position based on user input
 void UpdateCamera(bool sidesOrientation, int way) {
 	GLfloat deltaX, deltaZ;
 	Coordinates direction = lookAtFloorDirection();
@@ -274,6 +293,7 @@ void UpdateCamera(bool sidesOrientation, int way) {
 	lookAtHim.z += deltaZ;
 }
 
+// Handle mouse movement to control the camera
 void GerenciaMovimentoMouse(int x, int y) {
 	if (x > width-200 || y > hight-200 || x < 200 || y < 200) {
 		ResetMouse();
@@ -298,6 +318,7 @@ void GerenciaMovimentoMouse(int x, int y) {
 	glutPostRedisplay();
 }
 
+// Handle mouse clicks
 void MouseClick(int button, int state, int x, int y) {
 	const int camSpeedChangeRatio = 2;
     switch (button) {
@@ -312,6 +333,7 @@ void MouseClick(int button, int state, int x, int y) {
     }
 }
 
+// Handle special keyboard keys
 void SpecialKeys(int key, int x, int y) {
     switch (key) {
 		case GLUT_KEY_LEFT:
@@ -327,10 +349,12 @@ void SpecialKeys(int key, int x, int y) {
     }
 }
 
+// Check if a key is a movement key
 bool isMovementKey(unsigned char key) {
 	return movementKeyPressed.find(key) != movementKeyPressed.end();
 }
 
+// Handle regular keyboard key presses
 void KeyboardFunc(unsigned char key, int x, int y) {
 	const int fovChangeRatio = 1;
 
@@ -353,12 +377,14 @@ void KeyboardFunc(unsigned char key, int x, int y) {
 	}
 }
 
+// Handle keyboard key releases
 void KeyboardUpFunc(unsigned char key, int x, int y) {
 	if (isMovementKey(key)) {
 		movementKeyPressed.at(key) = false;
 	}
 }
 
+// Update the simulation state for a time step
 void SimulationTick() {
 	int absSimulationSpeed = abs(simulationSpeed);
 	// timeWay: -1 (backwards in time) or 1 (forwards in time)
@@ -374,6 +400,7 @@ void SimulationTick() {
     }
 }
 
+// Update camera movement based on user input
 void UpdateMovement() {
 	if (movementKeyPressed.at('w')) {
 		UpdateCamera(false, POSITIVE);
@@ -397,6 +424,7 @@ void UpdateMovement() {
 	}
 }
 
+// Timer function to update the simulation and rendering
 void Timer(int _ = 0) {
 	UpdateMovement();
 	if (simulationSpeed != 0 && !simulationPaused) {
@@ -408,6 +436,7 @@ void Timer(int _ = 0) {
     glutTimerFunc(deltaT, Timer, _);
 }
 
+// Initialize stars and celestial bodies
 void InitStars() {
 	int yaw, pitch;
 	GLfloat brightness;
@@ -422,6 +451,7 @@ void InitStars() {
 	}
 }
 
+// Set up properties of celestial bodies
 void SetBodies() {
 	sun.mass = 1.989e30;
 	sun.x = 0;
@@ -457,6 +487,7 @@ void SetBodies() {
 	InitStars();
 }
 
+// Main function of the simulation
 int main(int argc, char** argv) {
 	SetBodies();
 	glutInit(&argc, argv);
@@ -469,12 +500,11 @@ int main(int argc, char** argv) {
 	ResetMouse();
 	Timer();
 	glutDisplayFunc(Desenha);
-	glutReshapeFunc(AlteraTamanhoJanela); // Função para ajustar o tamanho da tela
+	glutReshapeFunc(AlteraTamanhoJanela);
     glutMouseFunc(MouseClick);
-	// glutIgnoreKeyRepeat(1);
-    glutKeyboardFunc(KeyboardFunc); // Define qual funcao gerencia o comportamento do teclado
+    glutKeyboardFunc(KeyboardFunc);
 	glutKeyboardUpFunc(KeyboardUpFunc);
-    glutSpecialFunc(SpecialKeys); // Define qual funcao gerencia as teclas especiais
+    glutSpecialFunc(SpecialKeys);
 	glutPassiveMotionFunc(GerenciaMovimentoMouse);
 	Inicializa();
 	glutMainLoop();
