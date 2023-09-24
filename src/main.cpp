@@ -25,6 +25,8 @@ struct Body {
     GLfloat mass;
     GLfloat x, z;
     GLfloat vx, vz;
+	GLfloat rotatedAngle;
+	GLfloat ownAxisRotationVelocity;
 	Color color;
 	GLfloat simulatedSize;
 };
@@ -94,7 +96,12 @@ void CalculateGravity(Body& body1, Body& body2, GLfloat& fx, GLfloat& fz) {
     fz = F * (dz / r);
 }
 
-// Function to update the position and velocity of a body based on forces
+// Function to update the rotation of a body 
+void RotateBody(Body& body) {
+	body.rotatedAngle += body.ownAxisRotationVelocity;
+}
+
+// Function to update the position, velocity and rotation of a body
 void UpdateBody(Body& body, GLfloat fx, GLfloat fz, int dt, Body& reference) {
     GLfloat ax = fx / body.mass;
     GLfloat az = fz / body.mass;
@@ -104,6 +111,8 @@ void UpdateBody(Body& body, GLfloat fx, GLfloat fz, int dt, Body& reference) {
 
     body.x += body.vx * dt + reference.x;
     body.z += body.vz * dt + reference.z;
+
+	RotateBody(body);
 }
 
 // Function to draw a crosshair at the center of the screen
@@ -119,7 +128,8 @@ void DrawBody(Body body) {
 	glColor3f(body.color.r, body.color.g, body.color.b);
     glPushMatrix();
         glTranslated(body.x*scale, 0, body.z*scale);
-        glutSolidSphere(body.simulatedSize, 50, 20);
+        glRotatef(body.rotatedAngle, 0.0, 1.0, 0.0);
+		glutSolidSphere(body.simulatedSize, 50, 20);
     glPopMatrix();
 }
 
@@ -393,6 +403,7 @@ void SimulationTick() {
 	for (int t = 0; t < absSimulationSpeed; t++) {
         GLfloat fx, fz;
 
+		RotateBody(sun);
         CalculateGravity(earth, sun, fx, fz);
         UpdateBody(earth, fx, fz, timeWay*simulationTimePrecision, sun);
 		// CalculateGravity(moon, earth, fx, fz);
@@ -458,6 +469,8 @@ void SetBodies() {
 	sun.z = 0;
 	sun.vx = 0;
 	sun.vz = 0;
+	sun.rotatedAngle = 0;
+	sun.ownAxisRotationVelocity = 0.004;
 	sun.color.r = 1.0;
 	sun.color.g = 0.7;
 	sun.color.b = 0.0;
@@ -468,6 +481,8 @@ void SetBodies() {
 	earth.z = 0;
 	earth.vx = 0;
 	earth.vz = 29783;
+	earth.rotatedAngle = 0;
+	earth.ownAxisRotationVelocity = 0.1;
 	earth.color.r = 0.0;
 	earth.color.g = 0.5;
 	earth.color.b = 0.3;
@@ -479,6 +494,8 @@ void SetBodies() {
 	moon.z = earth.z;
 	moon.vx = 0;
 	moon.vz = 3679;
+	moon.rotatedAngle = 0;
+	moon.ownAxisRotationVelocity = 0.1;
 	moon.color.r = 0.3;
 	moon.color.g = 0.3;
 	moon.color.b = 0.3;
