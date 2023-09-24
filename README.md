@@ -23,12 +23,12 @@ The past command will compile and run the code automatically.
 
 If you are not in a linux machine, you are still able to execute the simulation by manually compiling it:
 ```
-g++ -o simulation  src/simulation.cpp -lGL -lGLU -lglut
+g++ -o main  src/main.cpp -lGL -lGLU -lglut
 ```
 
 And executing it:
 ```
-./simulation
+./main
 ```
 ## Visualization
 
@@ -53,7 +53,6 @@ The simulation renders the following elements:
   - `D`: Strafe right.
   - `Spacebar`: Move upward.
   - `\`: Move downward.
-  - `Alt + F4`: Close the simulation.
 
 - **Mouse**: You can change the camera's direction using the mouse. Move the mouse to look around. Clicking the left mouse button allows you to interact with objects in the simulation.
 
@@ -62,3 +61,5 @@ The simulation renders the following elements:
 - **Pause Simulation**: Press the `Enter` key to pause and resume the simulation.
 
 - **Change Field of View (FOV)**: You can adjust the field of view using the `+` and `-` keys.
+
+- **Finish the simulation**: You can finish the simulation by pressing: `Alt + F4`.
