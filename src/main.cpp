@@ -22,9 +22,9 @@ map<char, bool> movementKeyPressed = {
     { 'w', false },
     { 'a', false },
     { 's', false },
-	{ 'd', false },
-	{ ' ', false },
-	{ '\\', false}
+    { 'd', false },
+    { ' ', false },
+    { '\\', false}
 };
 
 // Constants and parameters used in the simulation
@@ -40,11 +40,11 @@ const int gridSpacement = 150;
 const int numberOfStars = 1e5;
 const int renderDistance = 3e4;
 
-// Define objects representing celestial bodies and camera settings;
+// Define objects representing celestial bodies and camera settings
 Body sun, earth, moon, comet;
 Star stars[numberOfStars];
 GLdouble Px, Py, Pz;
-GLfloat fov = 60, fAspect, width = 1200, hight = 900, cameraYaw = -90, cameraPitch = 0;
+GLfloat fov = 60, fAspect, width = 1200, height = 900, cameraYaw = -90, cameraPitch = 0;
 Coordinates camera{ 0, 50, 300 }, lookAtHim{ camera.x, camera.y, camera.z-1 };
 int camSpeed = 10;
 int previousMouseX, previousMouseY;
@@ -56,7 +56,7 @@ int Bz[] = {1200, -1000, -1000, 1200};
 double currentCometPosition = 0;
 
 // Function to log coordinates for debugging purposes
-void LogCoordinates(Coordinates coordinates) {
+void logCoordinates(Coordinates coordinates) {
 	cout << "x: " << coordinates.x << endl;
 	cout << "y: " << coordinates.y << endl;
 	cout << "z: " << coordinates.z << endl;
@@ -64,7 +64,6 @@ void LogCoordinates(Coordinates coordinates) {
 
 // Function to calculate Bezier point coordinates
 float calculateBezierPoint(char c, double t) {
-	
 	switch (c) {
 		case 'x':
 			return (pow(1 - t, 3) * Bx[0] + 3 * t * pow(1 - t, 2) * Bx[1] + 3 * pow(t, 2) * (1 - t) * Bx[2] + pow(t, 3) * Bx[3]);
@@ -79,40 +78,40 @@ float calculateBezierPoint(char c, double t) {
 }
 
 // Function to calculate gravitational force between two bodies
-void CalculateGravity(Body& body1, Body& body2, GLfloat& fx, GLfloat& fz) {
-    GLfloat dx = body2.x - body1.x;
-    GLfloat dz = body2.z - body1.z;
-    GLfloat r = sqrt(dx * dx + dz * dz);
+void calculateGravity(Body& body1, Body& body2, GLfloat& fx, GLfloat& fz) {
+	GLfloat dx = body2.x - body1.x;
+	GLfloat dz = body2.z - body1.z;
+	GLfloat r = sqrt(dx * dx + dz * dz);
 
-    GLfloat F = (G * body1.mass * body2.mass) / (r * r);
+	GLfloat F = (G * body1.mass * body2.mass) / (r * r);
 
-    fx = F * (dx / r);
-    fz = F * (dz / r);
+	fx = F * (dx / r);
+	fz = F * (dz / r);
 }
 
 // Function to update the rotation of a body 
-void RotateBody(Body& body) {
+void rotateBody(Body& body) {
 	body.rotatedAngle += body.ownAxisRotationVelocity;
 }
 
-// Function to update the position, velocity and rotation of a body
-void UpdateBody(Body& body, GLfloat fx, GLfloat fz, int dt, Body& reference) {
-    GLfloat ax = fx / body.mass;
-    GLfloat az = fz / body.mass;
+// Function to update the position, velocity, and rotation of a body
+void updateBody(Body& body, GLfloat fx, GLfloat fz, int dt, Body& reference) {
+	GLfloat ax = fx / body.mass;
+	GLfloat az = fz / body.mass;
 
-    body.vx += ax * dt;
-    body.vz += az * dt;
+	body.vx += ax * dt;
+	body.vz += az * dt;
 
-    body.x += body.vx * dt + reference.x;
-    body.z += body.vz * dt + reference.z;
+	body.x += body.vx * dt + reference.x;
+	body.z += body.vz * dt + reference.z;
 
-	RotateBody(body);
+	rotateBody(body);
 }
 
 // Function to update comet's position
-void UpdateComet(Body& body){
+void updateComet(Body& body) {
 	currentCometPosition += body.velocity;
-	
+
 	if(currentCometPosition > 1){
 		currentCometPosition = 0;
 	}
@@ -122,7 +121,7 @@ void UpdateComet(Body& body){
 }
 
 // Function to draw a crosshair at the center of the screen
-void DrawCrosshair() {
+void drawCrosshair() {
 	glColor3f(0, 1, 1);
 	glBegin(GL_POINTS);
 		glVertex3f(lookAtHim.x, lookAtHim.y, lookAtHim.z);
@@ -130,25 +129,25 @@ void DrawCrosshair() {
 }
 
 // Function to draw a celestial body
-void DrawBody(Body body) {
+void drawBody(Body body) {
 	glColor3f(body.color.r, body.color.g, body.color.b);
-    glPushMatrix();
-        glTranslated(body.x*scale, 0, body.z*scale);
-        glRotatef(body.rotatedAngle, 0.0, 1.0, 0.0);
+	glPushMatrix();
+		glTranslated(body.x*scale, 0, body.z*scale);
+		glRotatef(body.rotatedAngle, 0.0, 1.0, 0.0);
 		glutSolidSphere(body.simulatedSize, 50, 20);
-    glPopMatrix();
+	glPopMatrix();
 }
 
 // Function to draw all celestial bodies
-void DrawBodies() {
-	DrawBody(sun);
-	DrawBody(earth);
-	// DrawBody(moon);
-	DrawBody(comet);
+void drawBodies() {
+	drawBody(sun);
+	drawBody(earth);
+	// drawBody(moon);
+	drawBody(comet);
 }
 
 // Function to draw stars
-void DrawStars() {
+void drawStars() {
 	glBegin(GL_POINTS);
 		for (int i = 0; i < numberOfStars; i++) {
 			glColor3f(stars[i].brightness, stars[i].brightness, stars[i].brightness);
@@ -158,7 +157,7 @@ void DrawStars() {
 }
 
 // Function to draw a grid in the X-Z plane
-void DrawXZPlaneGrid() {
+void drawXZPlaneGrid() {
 	glColor3f(0.3, 0.3, 0.3);
 	glBegin(GL_LINES);
 	for(int i = -gridSize; i <= gridSize; i += gridSpacement) {
@@ -184,7 +183,7 @@ void drawBezierCurve(){
 }
 
 // Function to draw the reference points of the Bezier curve
-void drawBazierRefPoints(){
+void drawBezierRefPoints(){
 	glColor3f(1.0f, 0.06, 0.6f);
 	glBegin(GL_LINE_STRIP);
 		glVertex3i(Bx[0], By[0], Bz[0]);
@@ -195,29 +194,27 @@ void drawBazierRefPoints(){
 }
 
 // Function to render the entire scene, including stars, celestial bodies, and grid
-void Desenha(void)
-{
-	glViewport(0, 0, width, hight);
+void renderScene(void) {
+	glViewport(0, 0, width, height);
 
 	// Draw the stars before all other things and clearing the depth buffer, so the stars are behind everything
 	glClear(GL_COLOR_BUFFER_BIT);
-	DrawStars();
+	drawStars();
 	glClear(GL_DEPTH_BUFFER_BIT);
 
-	DrawCrosshair();
-	DrawXZPlaneGrid();
-	DrawBodies();
+	drawCrosshair();
+	drawXZPlaneGrid();
+	drawBodies();
 
 	drawBezierCurve();
 
-	drawBazierRefPoints();
+	drawBezierRefPoints();
 
 	glutSwapBuffers();
 }
 
-// Initialize OpenGL settings
-void Inicializa(void)
-{
+// initialize OpenGL settings
+void initialize(void) {
 	/*
 	GLfloat luzAmbiente[4]={0.2, 0.2, 0.2, 1.0};   // {R, G, B, alfa}
 	GLfloat luzDifusa[4]={0.5, 0.5, 0.5, 1.0};	   // o 4o componente, alfa, controla a opacidade/transparência da luz
@@ -261,13 +258,12 @@ void Inicializa(void)
 	*/
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-    glEnable(GL_DEPTH_TEST);   //Turning on zBuffer
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);   //Applying zBuffer
+	glEnable(GL_DEPTH_TEST);   //Turning on zBuffer
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);   //Applying zBuffer
 }
 
 // Set up the viewing parameters
-void EspecificaParametrosVisualizacao(void)
-{
+void specifyViewingParameters(void) {
 	glMatrixMode(GL_PROJECTION);
 
 	glLoadIdentity();
@@ -284,16 +280,16 @@ void EspecificaParametrosVisualizacao(void)
 }
 
 // Callback function for window resizing
-void AlteraTamanhoJanela(GLint width, GLint hight) {
-	// Para previnir uma divisão por zero
-	if (hight == 0) hight = 1;
+void resizeWindow(GLint width, GLint height) {
+	// To prevent division by zero
+	if (height == 0) height = 1;
 
-	glViewport(0, 0, width, hight);
+	glViewport(0, 0, width, height);
 
-	// Calcula a correção de aspecto
-	fAspect = (GLfloat)width / (GLfloat)hight;
+	// Calculate aspect ratio correction
+	fAspect = (GLfloat)width / (GLfloat)height;
 
-	EspecificaParametrosVisualizacao();
+	specifyViewingParameters();
 }
 
 // Calculate the direction vector pointing to the floor
@@ -308,10 +304,10 @@ Coordinates lookAtFloorDirection() {
 }
 
 // Reset the mouse to the center of the window
-void ResetMouse() {
+void resetMouse() {
 	previousMouseX = width/2;
-	previousMouseY = hight/2;
-	glutWarpPointer(width/2, hight/2);
+	previousMouseY = height/2;
+	glutWarpPointer(width/2, height/2);
 }
 
 // Convert degrees to radians
@@ -320,7 +316,7 @@ GLfloat radians(GLfloat degree) {
 }
 
 // Update the camera's position based on user input
-void UpdateCamera(bool sidesOrientation, int way) {
+void updateCamera(bool sidesOrientation, int way) {
 	GLfloat deltaX, deltaZ;
 	Coordinates direction = lookAtFloorDirection();
 
@@ -339,9 +335,9 @@ void UpdateCamera(bool sidesOrientation, int way) {
 }
 
 // Handle mouse movement to control the camera
-void GerenciaMovimentoMouse(int x, int y) {
-	if (x > width-200 || y > hight-200 || x < 200 || y < 200) {
-		ResetMouse();
+void handleMouseMovement(int x, int y) {
+	if (x > width-200 || y > height-200 || x < 200 || y < 200) {
+		resetMouse();
 		return;
 	}
 
@@ -359,12 +355,12 @@ void GerenciaMovimentoMouse(int x, int y) {
 	lookAtHim.y = camera.y + sin(radians(cameraPitch));
 	lookAtHim.z = camera.z + sin(radians(cameraYaw)) * cos(radians(cameraPitch));
 	
-	EspecificaParametrosVisualizacao();
+	specifyViewingParameters();
 	glutPostRedisplay();
 }
 
 // Handle mouse clicks
-void MouseClick(int button, int state, int x, int y) {
+void handleMouseClick(int button, int state, int x, int y) {
 	const int camSpeedChangeRatio = 2;
     switch (button) {
     case 3:
@@ -379,7 +375,7 @@ void MouseClick(int button, int state, int x, int y) {
 }
 
 // Handle special keyboard keys
-void SpecialKeys(int key, int x, int y) {
+void handleSpecialKeys(int key, int x, int y) {
     switch (key) {
 		case GLUT_KEY_LEFT:
 			break;
@@ -400,7 +396,7 @@ bool isMovementKey(unsigned char key) {
 }
 
 // Handle regular keyboard key presses
-void KeyboardFunc(unsigned char key, int x, int y) {
+void handleKeyboard(unsigned char key, int x, int y) {
 	const int fovChangeRatio = 1;
 
 	if (isMovementKey(key)) {
@@ -423,14 +419,14 @@ void KeyboardFunc(unsigned char key, int x, int y) {
 }
 
 // Handle keyboard key releases
-void KeyboardUpFunc(unsigned char key, int x, int y) {
+void handleKeyboardUp(unsigned char key, int x, int y) {
 	if (isMovementKey(key)) {
 		movementKeyPressed.at(key) = false;
 	}
 }
 
 // Update the simulation state for a time step
-void SimulationTick() {
+void simulationTick() {
 	int absSimulationSpeed = abs(simulationSpeed);
 	// timeWay: -1 (backwards in time) or 1 (forwards in time)
 	int timeWay = absSimulationSpeed/simulationSpeed;
@@ -438,28 +434,28 @@ void SimulationTick() {
 	for (int t = 0; t < absSimulationSpeed; t++) {
         GLfloat fx, fz;
 
-		RotateBody(sun);
-		UpdateComet(comet);
-        CalculateGravity(earth, sun, fx, fz);
-        UpdateBody(earth, fx, fz, timeWay*simulationTimePrecision, sun);
-		// CalculateGravity(moon, earth, fx, fz);
-        // UpdateBody(moon, fx, fz, timeWay*simulationTimePrecision, earth);
+		rotateBody(sun);
+		updateComet(comet);
+        calculateGravity(earth, sun, fx, fz);
+        updateBody(earth, fx, fz, timeWay*simulationTimePrecision, sun);
+		// calculateGravity(moon, earth, fx, fz);
+        // updateBody(moon, fx, fz, timeWay*simulationTimePrecision, earth);
     }
 }
 
 // Update camera movement based on user input
-void UpdateMovement() {
+void updateMovement() {
 	if (movementKeyPressed.at('w')) {
-		UpdateCamera(false, POSITIVE);
+		updateCamera(false, POSITIVE);
 	}
 	if (movementKeyPressed.at('a')) {
-		UpdateCamera(true, NEGATIVE);
+		updateCamera(true, NEGATIVE);
 	}
 	if (movementKeyPressed.at('s')) {
-		UpdateCamera(false, NEGATIVE);
+		updateCamera(false, NEGATIVE);
 	}
 	if (movementKeyPressed.at('d')) {
-		UpdateCamera(true, POSITIVE);
+		updateCamera(true, POSITIVE);
 	}
 	if (movementKeyPressed.at('\\')) {
 		camera.y -= camSpeed;
@@ -471,20 +467,20 @@ void UpdateMovement() {
 	}
 }
 
-// Timer function to update the simulation and rendering
-void Timer(int _ = 0) {
-	UpdateMovement();
+// timer function to update the simulation and rendering
+void timer(int _ = 0) {
+	updateMovement();
 	if (simulationSpeed != 0 && !simulationPaused) {
-		SimulationTick();
+		simulationTick();
 	}
 
-	EspecificaParametrosVisualizacao();
+	specifyViewingParameters();
     glutPostRedisplay();
-    glutTimerFunc(deltaT, Timer, _);
+    glutTimerFunc(deltaT, timer, _);
 }
 
-// Initialize stars and celestial bodies
-void InitStars() {
+// initialize stars and celestial bodies
+void initStars() {
 	int yaw, pitch;
 	GLfloat brightness;
 	for (int i = 0; i < numberOfStars; i++) {
@@ -499,7 +495,7 @@ void InitStars() {
 }
 
 // Set up properties of celestial bodies
-void SetBodies() {
+void setBodies() {
 	sun.mass = 1.989e30;
 	sun.x = 0;
 	sun.z = 0;
@@ -546,28 +542,29 @@ void SetBodies() {
 	comet.rotatedAngle = 0;
 	comet.simulatedSize = 10;
 
-	InitStars();
+	initStars();
 }
 
 // Main function of the simulation
 int main(int argc, char** argv) {
-	SetBodies();
+	setBodies();
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowPosition(0,0);
-	fAspect = width / hight;
-    glutInitWindowSize(width, hight);
+	fAspect = width / height;
+    glutInitWindowSize(width, height);
     glutCreateWindow("Solar System Simulation");
 	glutSetCursor(GLUT_CURSOR_NONE);
-	ResetMouse();
-	Timer();
-	glutDisplayFunc(Desenha);
-	glutReshapeFunc(AlteraTamanhoJanela);
-    glutMouseFunc(MouseClick);
-    glutKeyboardFunc(KeyboardFunc);
-	glutKeyboardUpFunc(KeyboardUpFunc);
-    glutSpecialFunc(SpecialKeys);
-	glutPassiveMotionFunc(GerenciaMovimentoMouse);
-	Inicializa();
+	resetMouse();
+	timer();
+	glutDisplayFunc(renderScene);
+	glutReshapeFunc(resizeWindow);
+    glutMouseFunc(handleMouseClick);
+    glutKeyboardFunc(handleKeyboard);
+	glutKeyboardUpFunc(handleKeyboardUp);
+    glutSpecialFunc(handleSpecialKeys);
+	glutPassiveMotionFunc(handleMouseMovement);
+	initialize();
 	glutMainLoop();
+	return 0;
 }
