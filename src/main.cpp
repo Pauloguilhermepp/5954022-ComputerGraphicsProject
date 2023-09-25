@@ -26,7 +26,7 @@ map<char, bool> movementKeyPressed = {{'w', false}, {'a', false},
 const unsigned int simulationTimePrecision = 1000; // the lower, the better;
 const int simulationSpeedChangeRatio = 10;
 const unsigned int deltaT = 16;
-const GLfloat scale = 1 / 2e8;
+const GLfloat scale = 1 / 1e8;
 const int minCamSpeed = 1;
 const int maxCamSpeed = 200;
 const GLfloat mouseSensitivity = 0.05;
@@ -81,15 +81,15 @@ float calculateBezierPoint(char c, double t) {
 }
 
 // Function to calculate gravitational force between two bodies
-void calculateGravity(Body &body1, Body &body2, GLfloat &fx, GLfloat &fz) {
+void calculateGravity(Body &body1, Body &body2, GLfloat &ax, GLfloat &az) {
   GLfloat dx = body2.x - body1.x;
   GLfloat dz = body2.z - body1.z;
   GLfloat r = sqrt(dx * dx + dz * dz);
 
   GLfloat F = (G * body1.mass * body2.mass) / (r * r);
 
-  fx = F * (dx / r);
-  fz = F * (dz / r);
+  ax += (F * (dx / r)) / body1.mass;
+  az += (F * (dz / r)) / body1.mass;
 }
 
 // Function to update the rotation of a body
@@ -98,15 +98,12 @@ void rotateBody(Body &body) {
 }
 
 // Function to update the position, velocity, and rotation of a body
-void updateBody(Body &body, GLfloat fx, GLfloat fz, int dt, Body &reference) {
-  GLfloat ax = fx / body.mass;
-  GLfloat az = fz / body.mass;
-
+void updateBody(Body &body, GLfloat ax, GLfloat az, int dt) {
   body.vx += ax * dt;
   body.vz += az * dt;
 
-  body.x += body.vx * dt + reference.x;
-  body.z += body.vz * dt + reference.z;
+  body.x += body.vx * dt;
+  body.z += body.vz * dt;
 
   rotateBody(body);
 }
@@ -147,7 +144,7 @@ void drawBody(Body body) {
 void drawBodies() {
   drawBody(sun);
   drawBody(earth);
-  // drawBody(moon);
+  drawBody(moon);
   drawBody(comet);
 }
 
@@ -454,19 +451,27 @@ void handleKeyboardUp(unsigned char key, int x, int y) {
 
 // Update the simulation state for a time step
 void simulationTick() {
+  GLfloat ax, az;
   int absSimulationSpeed = abs(simulationSpeed);
   // timeWay: -1 (backwards in time) or 1 (forwards in time)
   int timeWay = absSimulationSpeed / simulationSpeed;
 
   for (int t = 0; t < absSimulationSpeed; t++) {
-    GLfloat fx, fz;
+    ax = 0;
+    az = 0;
 
     rotateBody(sun);
     updateComet(comet, timeWay);
-    calculateGravity(earth, sun, fx, fz);
-    updateBody(earth, fx, fz, timeWay * simulationTimePrecision, sun);
-    // calculateGravity(moon, earth, fx, fz);
-    // updateBody(moon, fx, fz, timeWay*simulationTimePrecision, earth);
+
+    calculateGravity(earth, sun, ax, az);
+    updateBody(earth, ax, az, timeWay * simulationTimePrecision);
+
+    ax = 0;
+    az = 0;
+
+    calculateGravity(moon, earth, ax, az);
+    calculateGravity(moon, sun, ax, az);
+    updateBody(moon, ax, az, timeWay * simulationTimePrecision);
   }
 }
 
@@ -545,20 +550,20 @@ void setBodies() {
   earth.color.r = 0.0;
   earth.color.g = 0.5;
   earth.color.b = 0.3;
-  earth.simulatedSize = 5;
+  earth.simulatedSize = 3;
 
   // problemas de escala com a lua
   moon.mass = 7.347e22;
-  moon.x = earth.x + 384400;
+  moon.x = earth.x - 4e8;
   moon.z = earth.z;
   moon.vx = 0;
-  moon.vz = 3679;
+  moon.vz = earth.vz + 1030;
   moon.rotatedAngle = 0;
   moon.ownAxisRotationVelocity = 0.1;
   moon.color.r = 0.3;
   moon.color.g = 0.3;
   moon.color.b = 0.3;
-  moon.simulatedSize = 1;
+  moon.simulatedSize = 0.8;
 
   comet.x = Bx[0] / scale;
   comet.z = Bz[0] / scale;
