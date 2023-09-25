@@ -64,17 +64,18 @@ void logCoordinates(Coordinates coordinates) {
 
 // Function to calculate Bezier point coordinates
 float calculateBezierPoint(char c, double t) {
-	switch (c) {
-		case 'x':
-			return (pow(1 - t, 3) * Bx[0] + 3 * t * pow(1 - t, 2) * Bx[1] + 3 * pow(t, 2) * (1 - t) * Bx[2] + pow(t, 3) * Bx[3]);
-			break;
-		case 'y':
-			return (pow(1 - t, 3) * By[0] + 3 * t * pow(1 - t, 2) * By[1] + 3 * pow(t, 2) * (1 - t) * By[2] + pow(t, 3) * By[3]);
-			break;
-		case 'z':
-			return (pow(1 - t, 3) * Bz[0] + 3 * t * pow(1 - t, 2) * Bz[1] + 3 * pow(t, 2) * (1 - t) * Bz[2] + pow(t, 3) * Bz[3]);
-			break;
-	}
+    switch (c) {
+        case 'x':
+            return (pow(1 - t, 3) * Bx[0] + 3 * t * pow(1 - t, 2) * Bx[1] + 3 * pow(t, 2) * (1 - t) * Bx[2] + pow(t, 3) * Bx[3]);
+        case 'y':
+            return (pow(1 - t, 3) * By[0] + 3 * t * pow(1 - t, 2) * By[1] + 3 * pow(t, 2) * (1 - t) * By[2] + pow(t, 3) * By[3]);
+        case 'z':
+            return (pow(1 - t, 3) * Bz[0] + 3 * t * pow(1 - t, 2) * Bz[1] + 3 * pow(t, 2) * (1 - t) * Bz[2] + pow(t, 3) * Bz[3]);
+        default:
+            // Print an error message and exit the program
+            std::cerr << "Invalid character '" << c << "' passed to calculateBezierPoint." << std::endl;
+            exit(EXIT_FAILURE);
+    }
 }
 
 // Function to calculate gravitational force between two bodies
@@ -109,11 +110,13 @@ void updateBody(Body& body, GLfloat fx, GLfloat fz, int dt, Body& reference) {
 }
 
 // Function to update comet's position
-void updateComet(Body& body) {
-	currentCometPosition += body.velocity;
+void updateComet(Body& body, int timeWay) {
+	currentCometPosition += timeWay * body.velocity;
 
 	if(currentCometPosition > 1){
 		currentCometPosition = 0;
+	}else if(currentCometPosition < 0){
+		currentCometPosition = 1;
 	}
 
 	body.x = calculateBezierPoint('x', currentCometPosition) / scale;
@@ -435,7 +438,7 @@ void simulationTick() {
         GLfloat fx, fz;
 
 		rotateBody(sun);
-		updateComet(comet);
+		updateComet(comet, timeWay);
         calculateGravity(earth, sun, fx, fz);
         updateBody(earth, fx, fz, timeWay*simulationTimePrecision, sun);
 		// calculateGravity(moon, earth, fx, fz);
