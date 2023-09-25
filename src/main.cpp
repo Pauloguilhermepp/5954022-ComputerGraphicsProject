@@ -33,7 +33,7 @@ const GLfloat mouseSensitivity = 0.05;
 const int gridSize = 1e5;
 const int gridSpacing = 1e2;
 const int numberOfStars = 1e5;
-const int renderDistance = 3e4;
+const int renderDistance = 1e5;
 
 // Define objects representing celestial bodies and camera settings
 Body sun, moon, comet;
@@ -48,8 +48,8 @@ int previousMouseX, previousMouseY;
 int simulationSpeed = 25;
 bool simulationPaused = false;
 int Bx[] = {-5000, -1000, 1000, 5000};
-int By[] = {2, 2, 2, 2};
-int Bz[] = {12000, -8000, -8000, 12000};
+int By[] = {0, 0, 0, 0};
+int Bz[] = {20000, -8000, -8000, 20000};
 double currentCometPosition = 0;
 bool showBezierCurve = true;
 bool showGrid = true;
@@ -172,6 +172,7 @@ void drawStars() {
 // Function to draw a grid in the X-Z plane
 void drawXZPlaneGrid() {
   glColor3f(0.3, 0.3, 0.3);
+  glLineWidth(1.0f);
   glBegin(GL_LINES);
   for (int i = -gridSize; i <= gridSize; i += gridSpacing) {
     glVertex3f(i, 0, -gridSize);
@@ -595,8 +596,8 @@ void setBodies() {
                                      0.1, setColor(0.1, 0.1, 0.9), 100)});
 
   moon = setBody(7.347e22, 147e9 - 4e8, 0, 0, 29783 + 1030, 0, 0, 0.1,
-                 setColor(0.3, 0.3, 0.3), 2);
-  comet = setBody(0, Bx[0] / scale, Bz[0] / scale, 0, 0, 0.00005, 0, 0,
+                 setColor(0.3, 0.3, 0.3), 1.5);
+  comet = setBody(0, Bx[0] / scale, Bz[0] / scale, 0, 0, 0.0001, 0, 0,
                   setColor(0.6, 0.6, 0.6), 20);
 
   initStars();
