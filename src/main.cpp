@@ -25,6 +25,7 @@ struct Body {
     GLfloat mass;
     GLfloat x, z;
     GLfloat vx, vz;
+	GLfloat velocity;
 	GLfloat rotatedAngle;
 	GLfloat ownAxisRotationVelocity;
 	Color color;
@@ -67,21 +68,42 @@ const int gridSpacement = 150;
 const int numberOfStars = 1e5;
 const int renderDistance = 3e4;
 
-// Define objects representing celestial bodies and camera settings
-Body sun, earth, moon;
+// Define objects representing celestial bodies and camera settings;
+Body sun, earth, moon, comet;
 Star stars[numberOfStars];
+GLdouble Px, Py, Pz;
 GLfloat fov = 60, fAspect, width = 1200, hight = 900, cameraYaw = -90, cameraPitch = 0;
 Coordinates camera{ 0, 50, 300 }, lookAtHim{ camera.x, camera.y, camera.z-1 };
 int camSpeed = 10;
 int previousMouseX, previousMouseY;
 int simulationSpeed = 25;
 bool simulationPaused = false;
+int Bx[] = {-200, -100, 100, 200};
+int By[] = { 0, 0, 0, 0};
+int Bz[] = {1200, -1000, -1000, 1200};
+double currentCometPosition = 0;
 
 // Function to log coordinates for debugging purposes
 void LogCoordinates(Coordinates coordinates) {
 	cout << "x: " << coordinates.x << endl;
 	cout << "y: " << coordinates.y << endl;
 	cout << "z: " << coordinates.z << endl;
+}
+
+// Function to calculate Bezier point coordinates
+float calculateBezierPoint(char c, double t) {
+	
+	switch (c) {
+		case 'x':
+			return (pow(1 - t, 3) * Bx[0] + 3 * t * pow(1 - t, 2) * Bx[1] + 3 * pow(t, 2) * (1 - t) * Bx[2] + pow(t, 3) * Bx[3]);
+			break;
+		case 'y':
+			return (pow(1 - t, 3) * By[0] + 3 * t * pow(1 - t, 2) * By[1] + 3 * pow(t, 2) * (1 - t) * By[2] + pow(t, 3) * By[3]);
+			break;
+		case 'z':
+			return (pow(1 - t, 3) * Bz[0] + 3 * t * pow(1 - t, 2) * Bz[1] + 3 * pow(t, 2) * (1 - t) * Bz[2] + pow(t, 3) * Bz[3]);
+			break;
+	}
 }
 
 // Function to calculate gravitational force between two bodies
@@ -115,6 +137,18 @@ void UpdateBody(Body& body, GLfloat fx, GLfloat fz, int dt, Body& reference) {
 	RotateBody(body);
 }
 
+// Function to update comet's position
+void UpdateComet(Body& body){
+	currentCometPosition += body.velocity;
+	
+	if(currentCometPosition > 1){
+		currentCometPosition = 0;
+	}
+
+	body.x = calculateBezierPoint('x', currentCometPosition) / scale;
+	body.z = calculateBezierPoint('z', currentCometPosition) / scale;
+}
+
 // Function to draw a crosshair at the center of the screen
 void DrawCrosshair() {
 	glColor3f(0, 1, 1);
@@ -138,6 +172,7 @@ void DrawBodies() {
 	DrawBody(sun);
 	DrawBody(earth);
 	// DrawBody(moon);
+	DrawBody(comet);
 }
 
 // Function to draw stars
@@ -163,6 +198,30 @@ void DrawXZPlaneGrid() {
 	glEnd();
 }
 
+// Function to draw the Bezier curve
+void drawBezierCurve(){
+	glColor3f(0.0f, 0.0f, 1.0f);
+	glBegin(GL_LINE_STRIP);
+		for (float t = 0; t <= 1; t=t+0.02) {
+			Px = calculateBezierPoint('x', t);
+			Py = calculateBezierPoint('y', t);
+			Pz = calculateBezierPoint('z', t);
+			glVertex3d(Px, Py, Pz);
+		}
+	glEnd();
+}
+
+// Function to draw the reference points of the Bezier curve
+void drawBazierRefPoints(){
+	glColor3f(1.0f, 0.06, 0.6f);
+	glBegin(GL_LINE_STRIP);
+		glVertex3i(Bx[0], By[0], Bz[0]);
+		glVertex3i(Bx[1], By[1], Bz[1]);
+		glVertex3i(Bx[2], By[2], Bz[2]);
+		glVertex3i(Bx[3], By[3], Bz[3]);
+	glEnd();
+}
+
 // Function to render the entire scene, including stars, celestial bodies, and grid
 void Desenha(void)
 {
@@ -176,6 +235,10 @@ void Desenha(void)
 	DrawCrosshair();
 	DrawXZPlaneGrid();
 	DrawBodies();
+
+	drawBezierCurve();
+
+	drawBazierRefPoints();
 
 	glutSwapBuffers();
 }
@@ -404,6 +467,7 @@ void SimulationTick() {
         GLfloat fx, fz;
 
 		RotateBody(sun);
+		UpdateComet(comet);
         CalculateGravity(earth, sun, fx, fz);
         UpdateBody(earth, fx, fz, timeWay*simulationTimePrecision, sun);
 		// CalculateGravity(moon, earth, fx, fz);
@@ -500,6 +564,15 @@ void SetBodies() {
 	moon.color.g = 0.3;
 	moon.color.b = 0.3;
 	moon.simulatedSize = 1;
+
+	comet.x = Bx[0]/scale;
+	comet.z = Bz[0]/scale;
+	comet.velocity = 0.0001;
+	comet.color.r = 0.6;
+	comet.color.g = 0.6;
+	comet.color.b = 0.6;
+	comet.rotatedAngle = 0;
+	comet.simulatedSize = 10;
 
 	InitStars();
 }
