@@ -64,6 +64,8 @@ The simulation renders the following elements:
   - `Spacebar`: Move upward.
   - `\`: Move downward.
 
+- **Planet Finder**: If you want to find a planet, press its number (1 to Mercury up to 8 to Neptune, respecting the distance to the Sun), and the path between your position and the planet will be drawn.
+
 - **Mouse**: You can change the camera's direction using the mouse. Move the mouse to look around. Using mouse scrolling you can make your movements faster or slower.
 
 - **Simulation Speed**: You can adjust the simulation speed using the arrow keys. `Up` increases the speed, and `Down` decreases it.
