@@ -21,6 +21,13 @@ After it, you can execute a simulation by running:
 
 The past command will compile and run the code automatically.
 
+If you want to make your own changes in the code, you also can apply the code formatter in the end! To do it, you need to install *clang* and run the following command:
+```
+./main.sh format
+```
+
+It will automatically format all the files of the project in the directory.
+
 If you are not in a linux machine, you are still able to execute the simulation by manually compiling it:
 ```
 g++ -o main  src/main.cpp -lGL -lGLU -lglut
@@ -30,6 +37,7 @@ And executing it:
 ```
 ./main
 ```
+
 ## Visualization
 
 The simulation renders the following elements:
@@ -64,6 +72,6 @@ The simulation renders the following elements:
 
 - **Change Field of View (FOV)**: You can adjust the field of view using the `+` and `-` keys.
 
-- **Display Reference Curves**: Press `b` to stop showing the Bézier curve and again to undo it. Do the same the `g` for a analogue mechanics with the grid.
+- **Display Reference Curves**: Press `b` to stop showing the Bézier curve and again to undo it. Do the same with the `g` key for a analogue mechanics with the grid.
 
 - **Finish the simulation**: You can finish the simulation by pressing: `Alt + F4`.
