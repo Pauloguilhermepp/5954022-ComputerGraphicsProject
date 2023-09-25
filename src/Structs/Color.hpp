@@ -5,9 +5,9 @@
 
 // Define a structure for holding RGB color values
 struct Color {
-	GLfloat r;
-	GLfloat g;
-	GLfloat b;
+  GLfloat r;
+  GLfloat g;
+  GLfloat b;
 };
 
 #endif
