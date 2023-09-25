@@ -77,3 +77,8 @@ The simulation renders the following elements:
 - **Display Reference Curves**: Press `b` to stop showing the Bézier curve and again to undo it. Do the same with the `g` key for a analogue mechanics with the grid.
 
 - **Finish the simulation**: You can finish the simulation by pressing: `Alt + F4`.
+
+## Observations
+- **Planets Diameters**: As mentioned earlier, the simulation is physically accurate. Despite this fact, it was decided to drawn the planets diameters out of scale. This option was actually harder to implement, but it makes easier to observe the simulation for the user (the real size of the planets would be too small).
+
+- **Comet Orbit**: The comet orbit showed in the simulation is described by a Bézier curve. Naturally, it would be possible (and easier) to make the real trajectory of the comet, but that was a necessary step due to some prerequisites of this project. If the ideia of a imprecision in the simulation upsets you, feel free to imagine that, actually, it is not a comet, but the **imperial death star**!
