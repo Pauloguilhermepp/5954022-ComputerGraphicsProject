@@ -36,7 +36,7 @@ const int minCamSpeed = 1;
 const int maxCamSpeed = 200;
 const GLfloat mouseSensitivity = 0.05;
 const int gridSize = 1e4;
-const int gridSpacement = 150;
+const int gridSpacing = 150;
 const int numberOfStars = 1e5;
 const int renderDistance = 3e4;
 
@@ -163,7 +163,7 @@ void drawStars() {
 void drawXZPlaneGrid() {
 	glColor3f(0.3, 0.3, 0.3);
 	glBegin(GL_LINES);
-	for(int i = -gridSize; i <= gridSize; i += gridSpacement) {
+	for(int i = -gridSize; i <= gridSize; i += gridSpacing) {
 	    glVertex3f(i,0,-gridSize);
 	    glVertex3f(i,0,gridSize);
 	    glVertex3f(-gridSize,0,i);
@@ -314,7 +314,7 @@ void resetMouse() {
 }
 
 // Convert degrees to radians
-GLfloat radians(GLfloat degree) {
+GLfloat degreesToRadians(GLfloat degree) {
 	return degree * (PI/180);
 }
 
@@ -354,9 +354,9 @@ void handleMouseMovement(int x, int y) {
 	cameraPitch -= deltaY*mouseSensitivity;
 	if (cameraPitch >= 90) cameraPitch = 89.9; else if (cameraPitch <= -90) cameraPitch = -89.9;
 
-	lookAtHim.x = camera.x + cos(radians(cameraYaw)) * cos(radians(cameraPitch));
-	lookAtHim.y = camera.y + sin(radians(cameraPitch));
-	lookAtHim.z = camera.z + sin(radians(cameraYaw)) * cos(radians(cameraPitch));
+	lookAtHim.x = camera.x + cos(degreesToRadians(cameraYaw)) * cos(degreesToRadians(cameraPitch));
+	lookAtHim.y = camera.y + sin(degreesToRadians(cameraPitch));
+	lookAtHim.z = camera.z + sin(degreesToRadians(cameraYaw)) * cos(degreesToRadians(cameraPitch));
 	
 	specifyViewingParameters();
 	glutPostRedisplay();
@@ -470,7 +470,7 @@ void updateMovement() {
 	}
 }
 
-// timer function to update the simulation and rendering
+// Timer function to update the simulation and rendering
 void timer(int _ = 0) {
 	updateMovement();
 	if (simulationSpeed != 0 && !simulationPaused) {
@@ -482,7 +482,7 @@ void timer(int _ = 0) {
     glutTimerFunc(deltaT, timer, _);
 }
 
-// initialize stars and celestial bodies
+// Initialize stars and celestial bodies
 void initStars() {
 	int yaw, pitch;
 	GLfloat brightness;
@@ -490,9 +490,9 @@ void initStars() {
 		yaw = rand();
 		pitch = rand();
 		brightness = rand()/GLfloat(RAND_MAX);
-		stars[i].pos.x = cos(radians(yaw)) * cos(radians(pitch));
-		stars[i].pos.y = sin(radians(pitch));
-		stars[i].pos.z = sin(radians(yaw)) * cos(radians(pitch));
+		stars[i].pos.x = cos(degreesToRadians(yaw)) * cos(degreesToRadians(pitch));
+		stars[i].pos.y = sin(degreesToRadians(pitch));
+		stars[i].pos.z = sin(degreesToRadians(yaw)) * cos(degreesToRadians(pitch));
 		stars[i].brightness = brightness;
 	}
 }
