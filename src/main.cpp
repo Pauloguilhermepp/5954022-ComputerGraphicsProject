@@ -93,19 +93,21 @@ void calculateGravity(Body &body1, Body &body2, GLfloat &ax, GLfloat &az) {
 }
 
 // Function to update the rotation of a body
-void rotateBody(Body &body) {
-  body.rotatedAngle += body.ownAxisRotationVelocity;
+void rotateBody(Body &body, int timeWay) {
+  body.rotatedAngle += timeWay * body.ownAxisRotationVelocity;
 }
 
 // Function to update the position, velocity, and rotation of a body
-void updateBody(Body &body, GLfloat ax, GLfloat az, int dt) {
+void updateBody(Body &body, GLfloat ax, GLfloat az, int timeWay, int dt) {
+  dt *= timeWay;
+
   body.vx += ax * dt;
   body.vz += az * dt;
 
   body.x += body.vx * dt;
   body.z += body.vz * dt;
 
-  rotateBody(body);
+  rotateBody(body, timeWay);
 }
 
 // Function to update comet's position
@@ -460,18 +462,18 @@ void simulationTick() {
     ax = 0;
     az = 0;
 
-    rotateBody(sun);
+    rotateBody(sun, timeWay);
     updateComet(comet, timeWay);
 
     calculateGravity(earth, sun, ax, az);
-    updateBody(earth, ax, az, timeWay * simulationTimePrecision);
+    updateBody(earth, ax, az, timeWay, simulationTimePrecision);
 
     ax = 0;
     az = 0;
 
     calculateGravity(moon, earth, ax, az);
     calculateGravity(moon, sun, ax, az);
-    updateBody(moon, ax, az, timeWay * simulationTimePrecision);
+    updateBody(moon, ax, az, timeWay, simulationTimePrecision);
   }
 }
 
