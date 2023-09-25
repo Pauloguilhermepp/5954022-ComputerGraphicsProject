@@ -52,8 +52,9 @@ int simulationSpeed = 25;
 bool simulationPaused = false;
 int Bx[] = {-200, -100, 100, 200};
 int By[] = { 0, 0, 0, 0};
-int Bz[] = {1200, -1000, -1000, 1200};
+int Bz[] = {1200, -950, -950, 1200};
 double currentCometPosition = 0;
+bool showBezierCurve = true;
 
 // Function to log coordinates for debugging purposes
 void logCoordinates(Coordinates coordinates) {
@@ -209,9 +210,10 @@ void renderScene(void) {
 	drawXZPlaneGrid();
 	drawBodies();
 
-	drawBezierCurve();
-
-	drawBezierRefPoints();
+	if(showBezierCurve){
+		drawBezierCurve();
+		drawBezierRefPoints();
+	}
 
 	glutSwapBuffers();
 }
@@ -416,6 +418,8 @@ void handleKeyboard(unsigned char key, int x, int y) {
 	case '-':
 		fov += fovChangeRatio;
 		break;
+	case 'b':
+		showBezierCurve = !showBezierCurve;
 	default:
 		break;
 	}
