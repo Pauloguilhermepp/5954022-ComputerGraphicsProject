@@ -528,53 +528,43 @@ void initStars() {
   }
 }
 
-// Set up properties of celestial bodies
+// Function to set a new color
+Color setColor(GLfloat cr, GLfloat cg, GLfloat cb){
+  Color color;
+  color.r = cr;
+  color.g = cg;
+  color.b = cb;
+
+  return color;
+}
+
+// Function to create a complete celestial body
+Body setBody(GLfloat mass, GLfloat x, GLfloat z, GLfloat vx, GLfloat vz, GLfloat velocity, 
+            GLfloat rotatedAngle, GLfloat ownAxisRotationVelocity, Color color, GLfloat simulatedSize){
+  Body body;
+  body.mass = mass;
+  body.x = x;
+  body.z = z;
+  body.vx = vx;
+  body.vz = vz;
+  body.velocity = velocity;
+  body.rotatedAngle = rotatedAngle;
+  body.ownAxisRotationVelocity = ownAxisRotationVelocity;
+  body.color.r = color.r;
+  body.color.g = color.g;
+  body.color.b = color.b;
+  body.simulatedSize = simulatedSize;
+
+  return body;
+}
+
+// Set up properties of all celestial bodies
 void setBodies() {
-  sun.mass = 1.989e30;
-  sun.x = 0;
-  sun.z = 0;
-  sun.vx = 0;
-  sun.vz = 0;
-  sun.rotatedAngle = 0;
-  sun.ownAxisRotationVelocity = 0.004;
-  sun.color.r = 1.0;
-  sun.color.g = 0.7;
-  sun.color.b = 0.0;
-  sun.simulatedSize = 50;
-
-  earth.mass = 5.972e24;
-  earth.x = 147e9;
-  earth.z = 0;
-  earth.vx = 0;
-  earth.vz = 29783;
-  earth.rotatedAngle = 0;
-  earth.ownAxisRotationVelocity = 0.1;
-  earth.color.r = 0.0;
-  earth.color.g = 0.5;
-  earth.color.b = 0.3;
-  earth.simulatedSize = 3;
-
-  // problemas de escala com a lua
-  moon.mass = 7.347e22;
-  moon.x = earth.x - 4e8;
-  moon.z = earth.z;
-  moon.vx = 0;
-  moon.vz = earth.vz + 1030;
-  moon.rotatedAngle = 0;
-  moon.ownAxisRotationVelocity = 0.1;
-  moon.color.r = 0.3;
-  moon.color.g = 0.3;
-  moon.color.b = 0.3;
-  moon.simulatedSize = 0.8;
-
-  comet.x = Bx[0] / scale;
-  comet.z = Bz[0] / scale;
-  comet.velocity = 0.0001;
-  comet.color.r = 0.6;
-  comet.color.g = 0.6;
-  comet.color.b = 0.6;
-  comet.rotatedAngle = 0;
-  comet.simulatedSize = 10;
+  // mass, x, z, vx, vz, velocity, rotatedAngle, ownAxisRotationVelocity, color, simulatedSize
+  sun   = setBody(1.989e30, 0, 0, 0, 0, 0, 0, 0.004, setColor(1, 0.7, 0.0), 50);
+  earth = setBody(5.972e24, 147e9, 0, 0, 29783, 0, 0, 0.1, setColor(0.0, 0.5, 0.3), 3);
+  moon = setBody(7.347e22, earth.x-4e8, earth.z, 0, earth.vz+1030, 0, 0, 0.1, setColor(0.3, 0.3, 0.3), 0.8);
+  comet = setBody(0, Bx[0]/scale, Bz[0]/scale, 0, 0, 0.0001, 0, 0, setColor(0.6, 0.6, 0.6), 10);
 
   initStars();
 }
