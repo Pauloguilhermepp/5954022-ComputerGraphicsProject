@@ -50,6 +50,9 @@ bool simulationPaused = false;
 int Bx[] = {-5000, -1000, 1000, 5000};
 int By[] = {0, 0, 0, 0};
 int Bz[] = {20000, -8000, -8000, 20000};
+bool findPlanet[] = {false, false, false, false, false, false, false, false};
+string planetsNames[] = {"Mercury", "Venus",  "Earth",  "Mars",
+                         "Jupiter", "Saturn", "Uranus", "Neptune"};
 double currentCometPosition = 0;
 bool showBezierCurve = true;
 bool showGrid = true;
@@ -209,6 +212,22 @@ void drawBezierRefPoints() {
   glEnd();
 }
 
+void drawFindPlanet() {
+  // Initialize an iterator to the beginning of the map
+  Body planet;
+  for (int i = 0; i < 8; i++) {
+    if (findPlanet[i]) {
+      planet = planets.at(planetsNames[i]);
+      glColor3f(planet.color.r, planet.color.g, planet.color.b);
+      glLineWidth(2.0f);
+      glBegin(GL_LINE_STRIP);
+      glVertex3i(camera.x, camera.y - 10, camera.z);
+      glVertex3i(planet.x * scale, 0, planet.z * scale);
+      glEnd();
+    }
+  }
+}
+
 // Function to render the entire scene, including stars, celestial bodies, and
 // grid
 void renderScene(void) {
@@ -226,6 +245,8 @@ void renderScene(void) {
     drawXZPlaneGrid();
   }
   drawBodies();
+
+  drawFindPlanet();
 
   if (showBezierCurve) {
     drawBezierCurve();
@@ -426,6 +447,18 @@ bool isMovementKey(unsigned char key) {
   return movementKeyPressed.find(key) != movementKeyPressed.end();
 }
 
+// Check if character is between 1 and 8
+bool isValidNumber(char c) { return c >= '1' && c <= '8'; }
+
+// Check if the path to a planet should be displayed
+void checkFindPlanet(char c) {
+  int num;
+  if (isValidNumber(c)) {
+    num = (c - '0') - 1;
+    findPlanet[num] = !findPlanet[num];
+  }
+}
+
 // Handle regular keyboard key presses
 void handleKeyboard(unsigned char key, int x, int y) {
   const int fovChangeRatio = 1;
@@ -451,6 +484,7 @@ void handleKeyboard(unsigned char key, int x, int y) {
     showGrid = !showGrid;
     break;
   default:
+    checkFindPlanet(key);
     break;
   }
 }
