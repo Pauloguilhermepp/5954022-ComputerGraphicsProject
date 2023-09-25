@@ -146,10 +146,37 @@ void drawBody(Body body) {
   glPopMatrix();
 }
 
+// Function to draw a ring
+void drawRing(Body planet, GLfloat innerRadius, GLfloat outerRadius,
+              int sides) {
+  glBegin(GL_TRIANGLE_STRIP);
+  glLineWidth(4.0f);
+  glColor3f(planet.color.r, planet.color.g, planet.color.b);
+  for (int i = 0; i <= sides; ++i) {
+    GLfloat angle = 2.0f * M_PI * i / sides;
+    GLfloat x = cos(angle);
+    GLfloat z = sin(angle);
+
+    // Outer vertex
+    glVertex3f((planet.x * scale + outerRadius * x), 0,
+               (planet.z * scale + outerRadius * z));
+
+    // Inner vertex
+    glVertex3f((planet.x * scale + innerRadius * x), 0,
+               (planet.z * scale + innerRadius * z));
+  }
+  glEnd();
+}
+
 // Function do draw all the planets
 void drawPlanets() {
   for (auto &x : planets) {
     drawBody(x.second);
+
+    if (x.first == "Saturn") {
+      drawRing(x.second, 1.2 * x.second.simulatedSize,
+               1.5 * x.second.simulatedSize, 50);
+    }
   }
 }
 
