@@ -1,9 +1,9 @@
 # Solar System Simulation
 
-The current project aims to simulate the solar system using OpenGL. It provides a real-time visualization of the Sun, Earth, and other planets, allowing the user to navigate and explore the solar system. The simulation takes into account *Newton's law of universal gravitation* to approximate thr bodies orbits.
+The current project aims to simulate the solar system using OpenGL. It provides a real-time visualization of the Sun, Earth, and other planets, allowing the user to navigate and explore the solar system. The simulation takes into account *Newton's law of universal gravitation* to approximate the bodies orbits.
 
 ## Collaborators
-This project was made by:
+This project was developed by:
 * Ângelo Pilotto - NºUSP: 12542647
 * Paulo Guilherme Pinheiro Pereira - NºUSP: 12542755
 
@@ -40,6 +40,8 @@ The simulation renders the following elements:
 
 3. **Earth**: Earth is depicted as a smaller sphere in orbit around the Sun. It moves according to gravitational forces.
 
+4. **Comet**: A comet was created describing its orbit using a Bézier curve.
+
 4. **Grid**: A grid is drawn on the XZ plane to provide a reference for orientation.
 
 5. **Crosshair**: A crosshair marks the center of the screen, aiding navigation.
@@ -54,12 +56,14 @@ The simulation renders the following elements:
   - `Spacebar`: Move upward.
   - `\`: Move downward.
 
-- **Mouse**: You can change the camera's direction using the mouse. Move the mouse to look around. Clicking the left mouse button allows you to interact with objects in the simulation.
+- **Mouse**: You can change the camera's direction using the mouse. Move the mouse to look around. Using mouse scrolling you can make your movements faster or slower.
 
 - **Simulation Speed**: You can adjust the simulation speed using the arrow keys. `Up` increases the speed, and `Down` decreases it.
 
 - **Pause Simulation**: Press the `Enter` key to pause and resume the simulation.
 
 - **Change Field of View (FOV)**: You can adjust the field of view using the `+` and `-` keys.
+
+- **Display Reference Curves**: Press `b` to stop showing the Bézier curve and again to undo it. Do the same the `g` for a analogue mechanics with the grid.
 
 - **Finish the simulation**: You can finish the simulation by pressing: `Alt + F4`.
