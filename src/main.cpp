@@ -55,6 +55,7 @@ int By[] = { 0, 0, 0, 0};
 int Bz[] = {1200, -950, -950, 1200};
 double currentCometPosition = 0;
 bool showBezierCurve = true;
+bool showGrid = true;
 
 // Function to log coordinates for debugging purposes
 void logCoordinates(Coordinates coordinates) {
@@ -207,7 +208,10 @@ void renderScene(void) {
 	glClear(GL_DEPTH_BUFFER_BIT);
 
 	drawCrosshair();
-	drawXZPlaneGrid();
+
+	if(showGrid){
+		drawXZPlaneGrid();
+	}
 	drawBodies();
 
 	if(showBezierCurve){
@@ -420,6 +424,10 @@ void handleKeyboard(unsigned char key, int x, int y) {
 		break;
 	case 'b':
 		showBezierCurve = !showBezierCurve;
+		break;
+	case 'g':
+		showGrid = !showGrid;
+		break;
 	default:
 		break;
 	}
