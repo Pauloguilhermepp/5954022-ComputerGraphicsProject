@@ -36,7 +36,7 @@ const int minCamSpeed = 1;
 const int maxCamSpeed = 200;
 const GLfloat mouseSensitivity = 0.05;
 const int gridSize = 1e4;
-const int gridSpacing = 150;
+const int gridSpacing = 1e2;
 const int numberOfStars = 1e5;
 const int renderDistance = 3e4;
 
@@ -176,7 +176,7 @@ void drawXZPlaneGrid() {
 
 // Function to draw the Bezier curve
 void drawBezierCurve(){
-	glColor3f(0.0f, 0.0f, 1.0f);
+	glColor3f(1.0f, 0.5f, 0.0f); 
 	glBegin(GL_LINE_STRIP);
 		for (float t = 0; t <= 1; t=t+0.02) {
 			Px = calculateBezierPoint('x', t);
@@ -189,7 +189,7 @@ void drawBezierCurve(){
 
 // Function to draw the reference points of the Bezier curve
 void drawBezierRefPoints(){
-	glColor3f(1.0f, 0.06, 0.6f);
+	glColor3f(0.5f, 0.0f, 0.5f);
 	glBegin(GL_LINE_STRIP);
 		glVertex3i(Bx[0], By[0], Bz[0]);
 		glVertex3i(Bx[1], By[1], Bz[1]);
