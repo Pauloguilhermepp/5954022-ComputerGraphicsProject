@@ -26,11 +26,11 @@ map<char, bool> movementKeyPressed = {{'w', false}, {'a', false},
 const unsigned int simulationTimePrecision = 1000; // the lower, the better;
 const int simulationSpeedChangeRatio = 10;
 const unsigned int deltaT = 16;
-const GLfloat scale = 1 / 1e8;
+const GLfloat scale = 1 / 5e7;
 const int minCamSpeed = 1;
 const int maxCamSpeed = 200;
 const GLfloat mouseSensitivity = 0.05;
-const int gridSize = 1e4;
+const int gridSize = 1e5;
 const int gridSpacing = 1e2;
 const int numberOfStars = 1e5;
 const int renderDistance = 3e4;
@@ -42,14 +42,14 @@ Star stars[numberOfStars];
 GLdouble Px, Py, Pz;
 GLfloat fov = 60, fAspect, width = 1200, height = 900, cameraYaw = -90,
         cameraPitch = 0;
-Coordinates camera{0, 50, 300}, lookAtHim{camera.x, camera.y, camera.z - 1};
+Coordinates camera{0, 500, 300}, lookAtHim{camera.x, camera.y, camera.z - 1};
 int camSpeed = 10;
 int previousMouseX, previousMouseY;
 int simulationSpeed = 25;
 bool simulationPaused = false;
-int Bx[] = {-200, -100, 100, 200};
-int By[] = {0, 0, 0, 0};
-int Bz[] = {1200, -950, -950, 1200};
+int Bx[] = {-5000, -1000, 1000, 5000};
+int By[] = {2, 2, 2, 2};
+int Bz[] = {12000, -8000, -8000, 12000};
 double currentCometPosition = 0;
 bool showBezierCurve = true;
 bool showGrid = true;
@@ -139,14 +139,21 @@ void drawBody(Body body) {
   glPushMatrix();
   glTranslated(body.x * scale, 0, body.z * scale);
   glRotatef(body.rotatedAngle, 0.0, 1.0, 0.0);
-  glutSolidSphere(body.simulatedSize, 50, 20);
+  glutSolidSphere(body.simulatedSize, 80, 20);
   glPopMatrix();
+}
+
+// Function do draw all the planets
+void drawPlanets() {
+  for (auto &x : planets) {
+    drawBody(x.second);
+  }
 }
 
 // Function to draw all celestial bodies
 void drawBodies() {
   drawBody(sun);
-  drawBody(planets.at("earth"));
+  drawPlanets();
   drawBody(moon);
   drawBody(comet);
 }
@@ -178,8 +185,9 @@ void drawXZPlaneGrid() {
 // Function to draw the Bezier curve
 void drawBezierCurve() {
   glColor3f(1.0f, 0.5f, 0.0f);
+  glLineWidth(4.0f);
   glBegin(GL_LINE_STRIP);
-  for (float t = 0; t <= 1; t = t + 0.02) {
+  for (float t = 0; t <= 1; t = t + 0.01) {
     Px = calculateBezierPoint('x', t);
     Py = calculateBezierPoint('y', t);
     Pz = calculateBezierPoint('z', t);
@@ -191,6 +199,7 @@ void drawBezierCurve() {
 // Function to draw the reference points of the Bezier curve
 void drawBezierRefPoints() {
   glColor3f(0.5f, 0.0f, 0.5f);
+  glLineWidth(4.0f);
   glBegin(GL_LINE_STRIP);
   glVertex3i(Bx[0], By[0], Bz[0]);
   glVertex3i(Bx[1], By[1], Bz[1]);
@@ -463,18 +472,17 @@ void simulationTick() {
     rotateBody(sun, timeWay);
     updateComet(comet, timeWay);
 
-    for (auto& x : planets)
-    {
-        ax = 0;
-        az = 0;
-        calculateGravity(x.second, sun, ax, az);
-        updateBody(x.second, ax, az, timeWay, simulationTimePrecision);
+    for (auto &x : planets) {
+      ax = 0;
+      az = 0;
+      calculateGravity(x.second, sun, ax, az);
+      updateBody(x.second, ax, az, timeWay, simulationTimePrecision);
     }
 
     ax = 0;
     az = 0;
 
-    calculateGravity(moon, planets.at("earth"), ax, az);
+    calculateGravity(moon, planets.at("Earth"), ax, az);
     calculateGravity(moon, sun, ax, az);
     updateBody(moon, ax, az, timeWay, simulationTimePrecision);
   }
@@ -532,7 +540,7 @@ void initStars() {
 }
 
 // Function to set a new color
-Color setColor(GLfloat cr, GLfloat cg, GLfloat cb){
+Color setColor(GLfloat cr, GLfloat cg, GLfloat cb) {
   Color color;
   color.r = cr;
   color.g = cg;
@@ -542,8 +550,10 @@ Color setColor(GLfloat cr, GLfloat cg, GLfloat cb){
 }
 
 // Function to create a complete celestial body
-Body setBody(GLfloat mass, GLfloat x, GLfloat z, GLfloat vx, GLfloat vz, GLfloat velocity, 
-            GLfloat rotatedAngle, GLfloat ownAxisRotationVelocity, Color color, GLfloat simulatedSize){
+Body setBody(GLfloat mass, GLfloat x, GLfloat z, GLfloat vx, GLfloat vz,
+             GLfloat velocity, GLfloat rotatedAngle,
+             GLfloat ownAxisRotationVelocity, Color color,
+             GLfloat simulatedSize) {
   Body body;
   body.mass = mass;
   body.x = x;
@@ -563,12 +573,31 @@ Body setBody(GLfloat mass, GLfloat x, GLfloat z, GLfloat vx, GLfloat vz, GLfloat
 
 // Set up properties of all celestial bodies
 void setBodies() {
-  // mass, x, z, vx, vz, velocity, rotatedAngle, ownAxisRotationVelocity, color, simulatedSize
-  sun   = setBody(1.989e30, 0, 0, 0, 0, 0, 0, 0.004, setColor(1, 0.7, 0.0), 50);
-  planets.insert({"earth", setBody(5.972e24, 147e9, 0, 0, 29783, 0, 0, 0.1, setColor(0.0, 0.5, 0.3), 3)});
-  //earth = setBody(5.972e24, 147e9, 0, 0, 29783, 0, 0, 0.1, setColor(0.0, 0.5, 0.3), 3);
-  moon = setBody(7.347e22, 147e9-4e8, 0, 0, 29783+1030, 0, 0, 0.1, setColor(0.3, 0.3, 0.3), 0.8);
-  comet = setBody(0, Bx[0]/scale, Bz[0]/scale, 0, 0, 0.0001, 0, 0, setColor(0.6, 0.6, 0.6), 10);
+  // mass, x, z, vx, vz, velocity, rotatedAngle, ownAxisRotationVelocity, color,
+  // simulatedSize
+  sun = setBody(1.989e30, 0, 0, 0, 0, 0, 0, 0.004, setColor(1, 0.7, 0.0), 500);
+
+  planets.insert({"Mercury", setBody(3.3011e23, 57.9e9, 0, 0, 47.87e3, 0, 0,
+                                     0.1, setColor(0.8, 0.8, 0.8), 8)});
+  planets.insert({"Venus", setBody(4.8675e24, 108.2e9, 0, 0, 35.02e3, 0, 0, 0.1,
+                                   setColor(0.9, 0.8, 0.6), 10)});
+  planets.insert({"Earth", setBody(5.972e24, 147.1e9, 0, 0, 29.78e3, 0, 0, 0.1,
+                                   setColor(0.0, 0.5, 0.3), 10)});
+  planets.insert({"Mars", setBody(6.4171e23, 227.9e9, 0, 0, 24.077e3, 0, 0, 0.1,
+                                  setColor(0.9, 0.2, 0.1), 9)});
+  planets.insert({"Jupiter", setBody(1.8982e27, 778.3e9, 0, 0, 13.07e3, 0, 0,
+                                     0.1, setColor(0.9, 0.6, 0.4), 200)});
+  planets.insert({"Saturn", setBody(5.6834e26, 1.42e12, 0, 0, 9.69e3, 0, 0, 0.1,
+                                    setColor(0.8, 0.7, 0.5), 150)});
+  planets.insert({"Uranus", setBody(8.6810e25, 2.87e12, 0, 0, 6.81e3, 0, 0, 0.1,
+                                    setColor(0.6, 0.8, 0.8), 100)});
+  planets.insert({"Neptune", setBody(1.02413e26, 4.5e12, 0, 0, 5.43e3, 0, 0,
+                                     0.1, setColor(0.1, 0.1, 0.9), 100)});
+
+  moon = setBody(7.347e22, 147e9 - 4e8, 0, 0, 29783 + 1030, 0, 0, 0.1,
+                 setColor(0.3, 0.3, 0.3), 2);
+  comet = setBody(0, Bx[0] / scale, Bz[0] / scale, 0, 0, 0.00005, 0, 0,
+                  setColor(0.6, 0.6, 0.6), 20);
 
   initStars();
 }
