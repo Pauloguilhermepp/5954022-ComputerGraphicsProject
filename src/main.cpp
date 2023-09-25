@@ -36,7 +36,8 @@ const int numberOfStars = 1e5;
 const int renderDistance = 3e4;
 
 // Define objects representing celestial bodies and camera settings
-Body sun, earth, moon, comet;
+Body sun, moon, comet;
+map<string, Body> planets;
 Star stars[numberOfStars];
 GLdouble Px, Py, Pz;
 GLfloat fov = 60, fAspect, width = 1200, height = 900, cameraYaw = -90,
@@ -145,7 +146,7 @@ void drawBody(Body body) {
 // Function to draw all celestial bodies
 void drawBodies() {
   drawBody(sun);
-  drawBody(earth);
+  drawBody(planets.at("earth"));
   drawBody(moon);
   drawBody(comet);
 }
@@ -459,19 +460,21 @@ void simulationTick() {
   int timeWay = absSimulationSpeed / simulationSpeed;
 
   for (int t = 0; t < absSimulationSpeed; t++) {
-    ax = 0;
-    az = 0;
-
     rotateBody(sun, timeWay);
     updateComet(comet, timeWay);
 
-    calculateGravity(earth, sun, ax, az);
-    updateBody(earth, ax, az, timeWay, simulationTimePrecision);
+    for (auto& x : planets)
+    {
+        ax = 0;
+        az = 0;
+        calculateGravity(x.second, sun, ax, az);
+        updateBody(x.second, ax, az, timeWay, simulationTimePrecision);
+    }
 
     ax = 0;
     az = 0;
 
-    calculateGravity(moon, earth, ax, az);
+    calculateGravity(moon, planets.at("earth"), ax, az);
     calculateGravity(moon, sun, ax, az);
     updateBody(moon, ax, az, timeWay, simulationTimePrecision);
   }
@@ -562,8 +565,9 @@ Body setBody(GLfloat mass, GLfloat x, GLfloat z, GLfloat vx, GLfloat vz, GLfloat
 void setBodies() {
   // mass, x, z, vx, vz, velocity, rotatedAngle, ownAxisRotationVelocity, color, simulatedSize
   sun   = setBody(1.989e30, 0, 0, 0, 0, 0, 0, 0.004, setColor(1, 0.7, 0.0), 50);
-  earth = setBody(5.972e24, 147e9, 0, 0, 29783, 0, 0, 0.1, setColor(0.0, 0.5, 0.3), 3);
-  moon = setBody(7.347e22, earth.x-4e8, earth.z, 0, earth.vz+1030, 0, 0, 0.1, setColor(0.3, 0.3, 0.3), 0.8);
+  planets.insert({"earth", setBody(5.972e24, 147e9, 0, 0, 29783, 0, 0, 0.1, setColor(0.0, 0.5, 0.3), 3)});
+  //earth = setBody(5.972e24, 147e9, 0, 0, 29783, 0, 0, 0.1, setColor(0.0, 0.5, 0.3), 3);
+  moon = setBody(7.347e22, 147e9-4e8, 0, 0, 29783+1030, 0, 0, 0.1, setColor(0.3, 0.3, 0.3), 0.8);
   comet = setBody(0, Bx[0]/scale, Bz[0]/scale, 0, 0, 0.0001, 0, 0, setColor(0.6, 0.6, 0.6), 10);
 
   initStars();
