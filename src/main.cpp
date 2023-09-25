@@ -6,44 +6,16 @@
 #include <vector>
 #include <map>
 
+#include "Structs/Body.hpp"
+#include "Structs/Star.hpp"
+#include "Structs/Coordinates.hpp"
+
 #define POSITIVE 1
 #define NEGATIVE -1
 #define PI 3.14159265358
 #define G 6.67430e-11
 
 using namespace std;
-
-// Define a structure for holding RGB color values
-struct Color {
-	GLfloat r;
-	GLfloat g;
-	GLfloat b;
-};
-
-// Define a structure for representing celestial bodies
-struct Body {
-    GLfloat mass;
-    GLfloat x, z;
-    GLfloat vx, vz;
-	GLfloat velocity;
-	GLfloat rotatedAngle;
-	GLfloat ownAxisRotationVelocity;
-	Color color;
-	GLfloat simulatedSize;
-};
-
-// Define a structure for representing 3D coordinates
-struct Coordinates {
-	GLfloat x;
-	GLfloat y;
-	GLfloat z;
-};
-
-// Define a structure for representing stars in the simulation
-struct Star {
-	GLfloat brightness;
-	Coordinates pos;
-};
 
 // Create a map to track movement key presses
 map<char, bool> movementKeyPressed = {
