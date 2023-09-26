@@ -31,7 +31,6 @@ const int minCamSpeed = 1;
 const int maxCamSpeed = 200;
 const GLfloat mouseSensitivity = 0.05;
 const int gridSize = 1e5;
-const int gridSpacing = 1e2;
 const int numberOfStars = 1e5;
 const int renderDistance = 1e5;
 
@@ -56,6 +55,9 @@ string planetsNames[] = {"Mercury", "Venus",  "Earth",  "Mars",
 double currentCometPosition = 0;
 bool showBezierCurve = true;
 bool showGrid = true;
+int gridSpacing = 2e2;
+int nextYLimitDelta = 1000;
+int nextYLimit = nextYLimitDelta;
 
 // Function to log coordinates for debugging purposes
 void logCoordinates(Coordinates coordinates) {
@@ -539,6 +541,28 @@ void simulationTick() {
   }
 }
 
+void shrinkGrid() {
+  gridSpacing /= 2;
+  nextYLimitDelta /= 2;
+  nextYLimit -= nextYLimitDelta;
+}
+
+void expandGrid() {
+  nextYLimit += nextYLimitDelta;
+  nextYLimitDelta *= 2;
+  gridSpacing *= 2;
+}
+
+void updateGrid() {
+  int minDeltaYToUpdate = 500;
+  int deltaY = abs(camera.y);
+  if (deltaY < nextYLimit-nextYLimitDelta/2 && deltaY > minDeltaYToUpdate) {
+    shrinkGrid();
+  } else if (deltaY > nextYLimit && deltaY > minDeltaYToUpdate) {
+    expandGrid();
+  }
+}
+
 // Update camera movement based on user input
 void updateMovement() {
   if (movementKeyPressed.at('w')) {
@@ -556,10 +580,12 @@ void updateMovement() {
   if (movementKeyPressed.at('\\')) {
     camera.y -= camSpeed;
     lookAtHim.y -= camSpeed;
+    updateGrid();
   }
   if (movementKeyPressed.at(' ')) {
     camera.y += camSpeed;
     lookAtHim.y += camSpeed;
+    updateGrid();
   }
 }
 
