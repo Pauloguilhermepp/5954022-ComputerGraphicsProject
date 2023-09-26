@@ -32,7 +32,6 @@ const int maxCamSpeed = 200;
 const GLfloat mouseSensitivity = 0.05;
 const int gridSize = 1e5;
 const int numberOfStars = 1e5;
-const int renderDistance = 1e5;
 
 // Define objects representing celestial bodies and camera settings
 Body sun, moon, comet;
@@ -58,6 +57,7 @@ bool showGrid = true;
 int gridSpacing = 2e2;
 int nextYLimitDelta = 1000;
 int nextYLimit = nextYLimitDelta;
+int renderDistance = 5e4;
 
 // Function to log coordinates for debugging purposes
 void logCoordinates(Coordinates coordinates) {
@@ -541,26 +541,28 @@ void simulationTick() {
   }
 }
 
-void shrinkGrid() {
-  gridSpacing /= 2;
-  nextYLimitDelta /= 2;
-  nextYLimit -= nextYLimitDelta;
-}
-
-void expandGrid() {
-  nextYLimit += nextYLimitDelta;
-  nextYLimitDelta *= 2;
-  gridSpacing *= 2;
-}
-
-void updateGrid() {
+void updateGridAndRenderDistance() {
   int minDeltaYToUpdate = 500;
   int deltaY = abs(camera.y);
+  int renderDistanceDelta = 10000;
+
   if (deltaY < nextYLimit-nextYLimitDelta/2 && deltaY > minDeltaYToUpdate) {
-    shrinkGrid();
+    // shrinks grid spacement
+    gridSpacing /= 2;
+    nextYLimitDelta /= 2;
+    nextYLimit -= nextYLimitDelta;
+
+    renderDistance -= renderDistanceDelta;
   } else if (deltaY > nextYLimit && deltaY > minDeltaYToUpdate) {
-    expandGrid();
+    renderDistance += renderDistanceDelta;
+
+    // expands grid spacement
+    nextYLimit += nextYLimitDelta;
+    nextYLimitDelta *= 2;
+    gridSpacing *= 2;
   }
+
+  
 }
 
 // Update camera movement based on user input
@@ -580,12 +582,12 @@ void updateMovement() {
   if (movementKeyPressed.at('\\')) {
     camera.y -= camSpeed;
     lookAtHim.y -= camSpeed;
-    updateGrid();
+    updateGridAndRenderDistance();
   }
   if (movementKeyPressed.at(' ')) {
     camera.y += camSpeed;
     lookAtHim.y += camSpeed;
-    updateGrid();
+    updateGridAndRenderDistance();
   }
 }
 
