@@ -285,40 +285,31 @@ void renderScene(void) {
 
 // initialize OpenGL settings
 void initialize(void) {
-  /*
-  GLfloat luzAmbiente[4]={0.2, 0.2, 0.2, 1.0};   // {R, G, B, alfa}
-  GLfloat luzDifusa[4]={0.5, 0.5, 0.5, 1.0};	   // o 4o componente, alfa,
-controla a opacidade/transparência da luz GLfloat
-luzEspecular[4]={1.0, 1.0, 1.0, 1.0}; GLfloat
-posicaoLuz[4]={50.0, 50.0, 50.0, 1.0};  // aqui o 4o componente indica o tipo de
-fonte:
-                                              // 0 para luz direcional (no
-infinito) e 1 para luz pontual (em x, y, z)
+  GLfloat luzDifusa[4] = {1, 1, 1, 1};
+  GLfloat posicaoLuz[4] = {sun.x, 0, sun.z, 1.0};
 
   // Capacidade de brilho do material
-  GLfloat especularidade[4]={1.0, 1.0, 1.0, 1.0};
-  GLint especMaterial = 100;
-
-  // Especifica a cor de fundo da janela
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  GLfloat especularidade[4] = {1.0, 1.0, 1.0, 1.0};
+  GLfloat zero[4] = {0,0,0,1};
+  GLint especMaterial = 127;
 
   // Habilita o modelo de colorização de Gouraud
-  glShadeModel(GL_SMOOTH);  // a cor de cada ponto da primitiva é interpolada a
-partir dos vértices
-//glShadeModel(GL_FLAT);  // a cor de cada primitiva é única em todos os pontos
+  glShadeModel(GL_SMOOTH);
+  // glShadeModel(GL_FLAT);
 
   // Define a refletância do material
-  glMaterialfv(GL_FRONT, GL_SPECULAR, especularidade);
+  glMaterialfv(GL_FRONT, GL_DIFFUSE, luzDifusa);
+  glMaterialfv(GL_BACK, GL_DIFFUSE, zero);
+  glMaterialfv(GL_FRONT | GL_BACK, GL_AMBIENT, zero);
+  glMaterialfv(GL_FRONT | GL_BACK, GL_SPECULAR, zero);
   // Define a concentração do brilho
   glMateriali(GL_FRONT, GL_SHININESS, especMaterial);
-
-  // Ativa o uso da luz ambiente
-  glLightModelfv(GL_LIGHT_MODEL_AMBIENT, luzAmbiente);
+  glMateriali(GL_BACK, GL_SHININESS, 0);
 
   // Define os parâmetros da luz de número 0
-  glLightfv(GL_LIGHT0, GL_AMBIENT, luzAmbiente);
-  glLightfv(GL_LIGHT0, GL_DIFFUSE, luzDifusa );
-  glLightfv(GL_LIGHT0, GL_SPECULAR, luzEspecular );
+  glLightfv(GL_LIGHT0, GL_DIFFUSE, luzDifusa);
+  glLightfv(GL_LIGHT0, GL_AMBIENT, zero);
+  glLightfv(GL_LIGHT0, GL_SPECULAR, zero);
   glLightfv(GL_LIGHT0, GL_POSITION, posicaoLuz );
 
   // Habilita a definição da cor do material a partir da cor corrente
@@ -327,9 +318,7 @@ partir dos vértices
   glEnable(GL_LIGHTING);
   // Habilita a luz de número 0
   glEnable(GL_LIGHT0);
-  // Habilita o depth-buffering
-  glEnable(GL_DEPTH_TEST);
-  */
+  
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
   glEnable(GL_DEPTH_TEST);                            // Turning on zBuffer
