@@ -615,6 +615,13 @@ void initStars() {
     stars[i].pos.y = sin(degreesToRadians(pitch));
     stars[i].pos.z = sin(degreesToRadians(yaw)) * cos(degreesToRadians(pitch));
     stars[i].brightness = brightness;
+    // multiple retries to reduce stars concentration in the poles
+    for (int j = 1; j < 100; j += j) {
+      if (stars[i].pos.y > j/100.0 | stars[i].pos.y < -j/100.0) {
+        pitch = rand();
+        stars[i].pos.y = sin(degreesToRadians(pitch));
+      }
+    }
   }
 }
 
