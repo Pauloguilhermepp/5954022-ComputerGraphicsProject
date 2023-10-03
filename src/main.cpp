@@ -241,6 +241,7 @@ void drawBezierRefPoints() {
   glEnd();
 }
 
+// If requested, draw a line between the player and a given planet
 void drawFindPlanet() {
   // Initialize an iterator to the beginning of the map
   Body planet;
@@ -285,42 +286,43 @@ void renderScene(void) {
   glutSwapBuffers();
 }
 
-// initialize OpenGL settings
+// Initialize OpenGL settings
 void initialize(void) {
-  GLfloat luzDifusa[4] = {1, 1, 1, 1};
-  GLfloat posicaoLuz[4] = {sun.x, 0, sun.z, 1.0};
+  GLfloat diffuseLight[4] = {1, 1, 1, 1};
+  GLfloat lightPosition[4] = {sun.x, 0, sun.z, 1.0};
 
-  // Capacidade de brilho do material
-  GLfloat especularidade[4] = {1.0, 1.0, 1.0, 1.0};
-  GLfloat zero[4] = {0,0,0,1};
-  GLint especMaterial = 127;
+  // Material shininess
+  GLfloat specular[4] = {1.0, 1.0, 1.0, 1.0};
+  GLfloat zero[4] = {0, 0, 0, 1};
+  GLint materialShininess = 127;
 
-  // Habilita o modelo de colorização de Gouraud
+  // Enable Gouraud shading model
   glShadeModel(GL_SMOOTH);
+  // Use flat shading model instead
   // glShadeModel(GL_FLAT);
 
-  // Define a refletância do material
-  glMaterialfv(GL_FRONT, GL_DIFFUSE, luzDifusa);
+  // Set material reflectance
+  glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuseLight);
   glMaterialfv(GL_BACK, GL_DIFFUSE, zero);
   glMaterialfv(GL_FRONT | GL_BACK, GL_AMBIENT, zero);
   glMaterialfv(GL_FRONT | GL_BACK, GL_SPECULAR, zero);
-  // Define a concentração do brilho
-  glMateriali(GL_FRONT, GL_SHININESS, especMaterial);
+  // Set shininess concentration
+  glMateriali(GL_FRONT, GL_SHININESS, materialShininess);
   glMateriali(GL_BACK, GL_SHININESS, 0);
 
-  // Define os parâmetros da luz de número 0
-  glLightfv(GL_LIGHT0, GL_DIFFUSE, luzDifusa);
+  // Define light parameters for light source 0
+  glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
   glLightfv(GL_LIGHT0, GL_AMBIENT, zero);
   glLightfv(GL_LIGHT0, GL_SPECULAR, zero);
-  glLightfv(GL_LIGHT0, GL_POSITION, posicaoLuz );
+  glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
 
-  // Habilita a definição da cor do material a partir da cor corrente
+  // Enable setting material color from the current color
   glEnable(GL_COLOR_MATERIAL);
-  //Habilita o uso de iluminação
+  // Enable lighting
   glEnable(GL_LIGHTING);
-  // Habilita a luz de número 0
+  // Enable light source 0
   glEnable(GL_LIGHT0);
-  
+
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
   glEnable(GL_DEPTH_TEST);                            // Turning on zBuffer
@@ -546,7 +548,7 @@ void updateGridAndRenderDistance() {
   int deltaY = abs(camera.y);
   int renderDistanceDelta = 10000;
 
-  if (deltaY < nextYLimit-nextYLimitDelta/2 && deltaY > minDeltaYToUpdate) {
+  if (deltaY < nextYLimit - nextYLimitDelta / 2 && deltaY > minDeltaYToUpdate) {
     // shrinks grid spacement
     gridSpacing /= 2;
     nextYLimitDelta /= 2;
@@ -561,8 +563,6 @@ void updateGridAndRenderDistance() {
     nextYLimitDelta *= 2;
     gridSpacing *= 2;
   }
-
-  
 }
 
 // Update camera movement based on user input
@@ -617,7 +617,7 @@ void initStars() {
     stars[i].brightness = brightness;
     // multiple retries to reduce stars concentration in the poles
     for (int j = 1; j < 100; j += j) {
-      if (stars[i].pos.y > j/100.0 | stars[i].pos.y < -j/100.0) {
+      if (stars[i].pos.y > j / 100.0 | stars[i].pos.y < -j / 100.0) {
         pitch = rand();
         stars[i].pos.y = sin(degreesToRadians(pitch));
       }
