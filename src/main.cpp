@@ -346,14 +346,16 @@ void specifyViewingParameters(void) {
 }
 
 // Callback function for window resizing
-void resizeWindow(GLint width, GLint height) {
-  // To prevent division by zero
+void resizeWindow(int newWidth, int newHeight) {
+  width = newWidth;
+  height = newHeight;
+
+  // Prevent division by zero
   if (height == 0)
     height = 1;
 
   glViewport(0, 0, width, height);
 
-  // Calculate aspect ratio correction
   fAspect = (GLfloat)width / (GLfloat)height;
 
   specifyViewingParameters();
