@@ -1,6 +1,6 @@
 # Solar System Simulation
 
-The current project aims to simulate the solar system using OpenGL. It provides a real-time visualization of the Sun, Earth, and other planets, allowing the user to navigate and explore the solar system. The simulation takes into account *Newton's law of universal gravitation* to approximate the bodies orbits.
+The current project aims to simulate the solar system using OpenGL. It provides a physically precise visualization of the Sun, Earth, and other planets, allowing the user to navigate and explore the solar system. The simulation takes into account *Newton's law of universal gravitation* to approximate the bodies orbits.
 
 ## Collaborators
 This project was developed by:
@@ -46,13 +46,15 @@ The simulation renders the following elements:
 
 2. **Sun**: The Sun is represented as a bright, massive sphere at the center of the simulation.
 
-3. **Earth**: Earth is depicted as a smaller sphere in orbit around the Sun. It moves according to gravitational forces.
+3. **Planets**: The Earth and the other planets in the solar system are represented as small spheres in orbit around the Sun. They move according to *Newton's law of universal gravitation*.
 
-4. **Comet**: A comet was created describing its orbit using a Bézier curve.
+4. **Moon**: Observing Earth close enough, it is possible to see the Moon orbiting it. Its movement also is totally described by *Newton's law of universal gravitation*.
 
-4. **Grid**: A grid is drawn on the XZ plane to provide a reference for orientation.
+5. **Comet**: A comet was created describing its orbit using a Bézier curve.
 
-5. **Crosshair**: A crosshair marks the center of the screen, aiding navigation.
+6. **Grid**: A grid is drawn on the XZ plane to provide a reference for orientation.
+
+7. **Crosshair**: A crosshair marks the center of the screen, aiding navigation.
 
 ## Navigation
 
@@ -64,11 +66,11 @@ The simulation renders the following elements:
   - `Spacebar`: Move upward.
   - `\`: Move downward.
 
-- **Planet Finder**: If you want to find a planet, press its number (1 to Mercury up to 8 to Neptune, respecting the distance to the Sun), and the path between your position and the planet will be drawn.
+- **Planet Finder**: If you want to find a planet, press its number (1 to Mercury up to 8 to Neptune, respecting the distance to the Sun), and the path between your position and the planet will be drawn with the planet color.
 
 - **Mouse**: You can change the camera's direction using the mouse. Move the mouse to look around. Using mouse scrolling you can make your movements faster or slower.
 
-- **Simulation Speed**: You can adjust the simulation speed using the arrow keys. `Up` increases the speed, and `Down` decreases it.
+- **Simulation Speed**: You can adjust the simulation speed using the arrow keys. `Up` increases the speed, and `Down` decreases it. If you decrease the simulation speed enough, it actually will reverse like in a time machine!
 
 - **Pause Simulation**: Press the `Enter` key to pause and resume the simulation.
 
