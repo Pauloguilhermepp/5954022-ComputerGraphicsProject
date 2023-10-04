@@ -203,7 +203,7 @@ void drawStars() {
 
 // Function to draw a grid in the X-Z plane
 void drawXZPlaneGrid() {
-  glColor3f(0.3, 0.3, 0.3);
+  glColor3f(0.2, 0.2, 0.2);
   glLineWidth(1.0f);
   glBegin(GL_LINES);
   for (int i = -gridSize; i <= gridSize; i += gridSpacing) {
@@ -274,7 +274,11 @@ void renderScene(void) {
   if (showGrid) {
     drawXZPlaneGrid();
   }
+
+  // Enable the light just for the bodies
+  glEnable(GL_LIGHTING);
   drawBodies();
+  glDisable(GL_LIGHTING);
 
   drawFindPlanet();
 
@@ -318,8 +322,6 @@ void initialize(void) {
 
   // Enable setting material color from the current color
   glEnable(GL_COLOR_MATERIAL);
-  // Enable lighting
-  glEnable(GL_LIGHTING);
   // Enable light source 0
   glEnable(GL_LIGHT0);
 
@@ -612,11 +614,11 @@ void initStars() {
   for (int i = 0; i < numberOfStars; i++) {
     yaw = rand();
     pitch = rand();
-    brightness = rand() / GLfloat(RAND_MAX);
+    brightness = rand() / GLfloat(RAND_MAX) - 0.3;
     stars[i].pos.x = cos(degreesToRadians(yaw)) * cos(degreesToRadians(pitch));
     stars[i].pos.y = sin(degreesToRadians(pitch));
     stars[i].pos.z = sin(degreesToRadians(yaw)) * cos(degreesToRadians(pitch));
-    stars[i].brightness = brightness;
+    stars[i].brightness = abs(brightness);
     // multiple retries to reduce stars concentration in the poles
     for (int j = 1; j < 100; j += j) {
       if (stars[i].pos.y > j / 100.0 | stars[i].pos.y < -j / 100.0) {
