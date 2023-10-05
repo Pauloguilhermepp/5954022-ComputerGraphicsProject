@@ -302,8 +302,6 @@ void initialize(void) {
 
   // Enable Gouraud shading model
   glShadeModel(GL_SMOOTH);
-  // Use flat shading model instead
-  // glShadeModel(GL_FLAT);
 
   // Set material reflectance
   glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuseLight);
