@@ -496,10 +496,14 @@ void handleKeyboard(unsigned char key, int x, int y) {
     simulationPaused = !simulationPaused;
     break;
   case '=':
-    fov -= fovChangeRatio;
+    if (fov > 1) {
+      fov -= fovChangeRatio;
+    }
     break;
   case '-':
-    fov += fovChangeRatio;
+    if (fov < 80) {
+      fov += fovChangeRatio;
+    }
     break;
   case 'b':
     showBezierCurve = !showBezierCurve;
